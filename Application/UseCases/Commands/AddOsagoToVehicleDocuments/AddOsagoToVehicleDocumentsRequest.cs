@@ -1,0 +1,3 @@
+namespace Application.UseCases.Commands.AddOsagoToVehicleDocuments;
+
+public record AddOsagoToVehicleDocumentsRequest();
