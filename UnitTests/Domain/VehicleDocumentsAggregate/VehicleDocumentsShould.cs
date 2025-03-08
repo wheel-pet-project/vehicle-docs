@@ -10,6 +10,9 @@ namespace UnitTests.Domain.VehicleDocumentsAggregate;
 public class VehicleDocumentsShould
 {
     private readonly Guid _vehicleId = Guid.NewGuid();
+    private readonly Sts _sts = Sts.Create(new string('*', 10), new string('*', 10));
+    private readonly Pts _pts = Pts.Create(new string('*', 10), new string('*', 10), DateOnly.FromDateTime(DateTime.UtcNow),
+    Color.Beige, Vin.Create("SALYA2BN2KA791786"));
     
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
@@ -21,11 +24,11 @@ public class VehicleDocumentsShould
         
         // Assert
         Assert.NotNull(actual);
+        Assert.NotEqual(Guid.Empty, actual.Id);
         Assert.Equal(actual.VehicleId, _vehicleId);
         Assert.False(actual.Status.AddingCompleted);
         Assert.Null(actual.Pts);
         Assert.Null(actual.Sts);
-        Assert.Null(actual.Osago);
     }
 
     [Fact]
@@ -53,7 +56,40 @@ public class VehicleDocumentsShould
 
         // Assert
         Assert.NotNull(vehicleDocuments.Pts);
-        Assert.Equal(vehicleDocuments.Pts, pts);
+        Assert.Equal(pts, vehicleDocuments.Pts);
+    }
+    
+    [Fact]
+    public void AddPtsChangeStatus()
+    {
+        // Arrange
+        var pts = Pts.Create(new string('*', 10), new string('*', 10), DateOnly.FromDateTime(DateTime.UtcNow),
+            Color.Beige, Vin.Create("SALYA2BN2KA791786"));
+        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+
+        // Act
+        vehicleDocuments.AddPts(pts);
+
+        // Assert
+        Assert.True(vehicleDocuments.Status.IsPtsAdded);
+    }
+    
+    [Fact]
+    public void AddPtsAddDomainEventIfAllDocumentsAreAdded()
+    {
+        // Arrange
+        var pts = Pts.Create(new string('*', 10), new string('*', 10), DateOnly.FromDateTime(DateTime.UtcNow),
+            Color.Beige, Vin.Create("SALYA2BN2KA791786"));
+        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        vehicleDocuments.AddSts(_sts);
+        vehicleDocuments.MarkAsOsagoAdded();
+        vehicleDocuments.ClearDomainEvents();
+
+        // Act
+        vehicleDocuments.AddPts(pts);
+
+        // Assert
+        Assert.NotEmpty(vehicleDocuments.DomainEvents);
     }
     
     [Fact]
@@ -81,7 +117,38 @@ public class VehicleDocumentsShould
 
         // Assert
         Assert.NotNull(vehicleDocuments.Sts);
-        Assert.Equal(vehicleDocuments.Sts, sts);
+        Assert.Equal(sts, vehicleDocuments.Sts);
+    }
+    
+    [Fact]
+    public void AddStsChangeStatus()
+    {
+        // Arrange
+        var sts = Sts.Create(new string('*', 10), new string('*', 10));
+        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+
+        // Act
+        vehicleDocuments.AddSts(sts);
+
+        // Assert
+        Assert.True(vehicleDocuments.Status.IsStsAdded);
+    }
+    
+    [Fact]
+    public void AddStsAddDomainEvent()
+    {
+        // Arrange
+        var sts = Sts.Create(new string('*', 10), new string('*', 10));
+        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        vehicleDocuments.AddPts(_pts);
+        vehicleDocuments.MarkAsOsagoAdded();
+        vehicleDocuments.ClearDomainEvents();
+
+        // Act
+        vehicleDocuments.AddSts(sts);
+
+        // Assert
+        Assert.NotEmpty(vehicleDocuments.DomainEvents);
     }
 
     [Fact]
@@ -98,31 +165,33 @@ public class VehicleDocumentsShould
     }
 
     [Fact]
-    public void AddOsago()
+    public void MarkAsOsagoAddedChangeStatus()
     {
         // Arrange
-        var osago = Osago.Create(new string('*', 10),
-            DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)));
+        var sts = Sts.Create(new string('*', 10), new string('*', 10));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
 
         // Act
-        vehicleDocuments.AddOsago(osago);
+        vehicleDocuments.MarkAsOsagoAdded();
 
         // Assert
-        Assert.NotNull(vehicleDocuments.Osago);
-        Assert.Equal(vehicleDocuments.Osago, osago);
+        Assert.True(vehicleDocuments.Status.IsOsagoAdded);
     }
-
+    
     [Fact]
-    public void AddOsagoThrowValueIsRequiredExceptionIfOsagoIsNull()
+    public void MarkAsOsagoAddedAddDomainEvent()
     {
         // Arrange
+        var sts = Sts.Create(new string('*', 10), new string('*', 10));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        vehicleDocuments.AddPts(_pts);
+        vehicleDocuments.AddSts(_sts);
+        vehicleDocuments.ClearDomainEvents();
 
         // Act
-        void Act() => vehicleDocuments.AddOsago(null!);
+        vehicleDocuments.MarkAsOsagoAdded();
 
         // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
+        Assert.NotEmpty(vehicleDocuments.DomainEvents);
     }
 }

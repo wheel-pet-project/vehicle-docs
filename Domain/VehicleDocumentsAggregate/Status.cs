@@ -1,8 +1,6 @@
-using CSharpFunctionalExtensions;
-
 namespace Domain.VehicleDocumentsAggregate;
 
-public class Status
+public sealed class Status
 {
     private Status()
     {

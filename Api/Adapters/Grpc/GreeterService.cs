@@ -1,5 +1,4 @@
 using Grpc.Core;
-using Api;
 
 namespace Api.Services;
 

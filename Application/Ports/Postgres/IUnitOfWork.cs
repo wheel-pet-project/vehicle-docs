@@ -1,6 +1,8 @@
+using FluentResults;
+
 namespace Application.Ports.Postgres;
 
-public class IUnitOfWork
+public interface IUnitOfWork
 {
-    
+    Task<Result> Commit();
 }

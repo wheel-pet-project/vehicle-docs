@@ -5,21 +5,22 @@ using Domain.VehicleDocumentsAggregate.DomainEvents;
 
 namespace Domain.VehicleDocumentsAggregate;
 
-public class VehicleDocuments : Aggregate
+public sealed class VehicleDocuments : Aggregate
 {
     private VehicleDocuments() { }
 
     private VehicleDocuments(Guid vehicleId) : this()
     {
+        Id = Guid.NewGuid();
         VehicleId = vehicleId;
         Status = Status.Create();
     }
     
+    public Guid Id { get; }
     public Guid VehicleId { get; }
     public Status Status { get; } = null!;
     public Pts? Pts { get; private set; }
     public Sts? Sts { get; private set; }
-    public Osago? Osago { get; private set; }
 
     public void AddPts(Pts potentialPts)
     {
@@ -41,12 +42,8 @@ public class VehicleDocuments : Aggregate
         if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
     }
 
-    public void AddOsago(Osago potentialOsago)
+    public void MarkAsOsagoAdded()
     {
-        if (potentialOsago == null) throw new ValueIsRequiredException($"{nameof(potentialOsago)} cannot be null");
-        
-        Osago = potentialOsago;
-        
         Status.MarkAsOsagoAdded();
         if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
     }

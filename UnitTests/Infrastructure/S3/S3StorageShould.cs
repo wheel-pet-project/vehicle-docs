@@ -1,0 +1,58 @@
+using Amazon.S3;
+using Application.Ports.S3;
+using Infrastructure.Adapters.S3;
+using Infrastructure.Options;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Options;
+using Moq;
+using Xunit;
+
+namespace UnitTests.Infrastructure.S3;
+
+[TestSubject(typeof(S3Storage))]
+public class S3StorageShould
+{
+    private readonly List<byte> _frontPhotoBytes = [1, 2, 3];
+    private readonly List<byte> _backPhotoBytes = [1, 2, 3];
+
+    [Fact]
+    public async Task ReturnSuccessResultForTwoPhotosSave()
+    {
+        // Arrange
+        var storageBuilder = new StorageBuilder();
+        var storage = storageBuilder.Build();
+
+        // Act
+        var actual = await storage.SavePhotos(_frontPhotoBytes, _backPhotoBytes);
+
+        // Assert
+        Assert.True(actual.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ReturnSuccessResultForOnePhotoSave()
+    {
+        // Arrange
+        var storageBuilder = new StorageBuilder();
+        var storage = storageBuilder.Build();
+
+        // Act
+        var actual = await storage.SavePhoto(_frontPhotoBytes);
+
+        // Assert
+        Assert.True(actual.IsSuccess);
+    }
+    
+    private class StorageBuilder
+    {
+        private readonly Mock<IAmazonS3> _s3Mock = new();
+        private readonly Mock<Microsoft.Extensions.Logging.ILogger<S3Storage>> _loggerMock = new();
+        private IOptions<S3Options> _s3Options = Options.Create(new S3Options { Buckets = ["test_bucket"] });
+
+        public IS3Storage Build(string? bucketName = null)
+        {
+            _s3Options = Options.Create(new S3Options { Buckets = [bucketName ?? "test_bucket"] });
+            return new S3Storage(_s3Mock.Object, _s3Options, _loggerMock.Object);
+        }
+    }
+}
