@@ -10,13 +10,13 @@ namespace IntegrationTests.Repositories;
 public class VehicleDocumentsRepositoryShould : IntegrationTestBase
 {
     private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
-    
+
     [Fact]
     public async Task Add()
     {
         // Arrange
         var (repository, uow) = RepositoryAndUnitOfWorkBuilder.Build(Context);
-        
+
         // Act
         await repository.Add(_vehicleDocuments);
         await uow.Commit();
@@ -38,7 +38,7 @@ public class VehicleDocumentsRepositoryShould : IntegrationTestBase
         var vehicleDocumentsFromDb = await repositoryForArrange.GetById(_vehicleDocuments.Id);
         vehicleDocumentsFromDb!.MarkAsOsagoAdded();
         var (repository, uow) = RepositoryAndUnitOfWorkBuilder.Build(Context);
-        
+
         // Act
         repository.Update(vehicleDocumentsFromDb);
         await uow.Commit();

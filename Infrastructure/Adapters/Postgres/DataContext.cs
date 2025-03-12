@@ -13,8 +13,10 @@ public class DataContext : DbContext
     public DbSet<Osago> Osagos { get; set; }
     public DbSet<InboxEvent> Inbox { get; set; }
     public DbSet<OutboxEvent> Outbox { get; set; }
-    
-    public DataContext(DbContextOptions<DataContext> options) : base(options) { }
+
+    public DataContext(DbContextOptions<DataContext> options) : base(options)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,7 +35,7 @@ internal class VehicleDocumentsEntityTypeConfiguration : IEntityTypeConfiguratio
         builder.ToTable("vehicle_documents");
 
         builder.HasKey(x => x.Id);
-        
+
         builder.Property(x => x.Id).ValueGeneratedNever().HasColumnName("id").IsRequired();
         builder.Property(x => x.VehicleId).ValueGeneratedNever().HasColumnName("vehicle_id").IsRequired();
 
@@ -53,14 +55,10 @@ internal class VehicleDocumentsEntityTypeConfiguration : IEntityTypeConfiguratio
                 .HasColumnName("pts_back_photo_storage_bucket_and_key")
                 .IsRequired();
             cfg.Property(x => x.YearOfManufacture).HasColumnName("pts_year_of_manufacture").IsRequired();
-            cfg.OwnsOne(x => x.Color, colorCfg =>
-            {
-                colorCfg.Property(x => x.Name).HasColumnName("pts_color").IsRequired();
-            });
-            cfg.OwnsOne(x => x.Vin, vinCfg =>
-            {
-                vinCfg.Property(x => x.Number).HasColumnName("pts_vin").IsRequired();
-            });
+            cfg.OwnsOne(x => x.Color,
+                colorCfg => { colorCfg.Property(x => x.Name).HasColumnName("pts_color").IsRequired(); });
+            cfg.OwnsOne(x => x.Vin,
+                vinCfg => { vinCfg.Property(x => x.Number).HasColumnName("pts_vin").IsRequired(); });
         });
         builder.Navigation(x => x.Pts).IsRequired(false);
 
@@ -74,7 +72,7 @@ internal class VehicleDocumentsEntityTypeConfiguration : IEntityTypeConfiguratio
                 .IsRequired(false);
         });
         builder.Navigation(x => x.Sts).IsRequired(false);
-        
+
         builder.Ignore(x => x.DomainEvents);
     }
 }
@@ -84,9 +82,9 @@ internal class OsagoEntityTypeConfiguration : IEntityTypeConfiguration<Osago>
     public void Configure(EntityTypeBuilder<Osago> builder)
     {
         builder.ToTable("osago");
-        
+
         builder.HasKey(x => x.Id);
-        
+
         builder.Property(x => x.Id).ValueGeneratedNever().HasColumnName("id").IsRequired();
 
         builder.HasOne<VehicleDocuments>()
@@ -94,12 +92,13 @@ internal class OsagoEntityTypeConfiguration : IEntityTypeConfiguration<Osago>
             .HasForeignKey(x => x.VehicleDocumentsId)
             .HasConstraintName("FK_vehicle_documents")
             .IsRequired();
-        
-        builder.HasOne(x => x.ExpiryStatus).WithMany()
+
+        builder.HasOne(x => x.ExpiryStatus)
+            .WithMany()
             .HasForeignKey("expiry_status_id")
             .HasConstraintName("FK_expiry_status_id")
             .IsRequired();
-        
+
         builder.Property(x => x.VehicleDocumentsId).HasColumnName("vehicle_documents_id").IsRequired();
         builder.Property(x => x.PhotoStorageBucketAndKey).HasColumnName("photo_storage_bucket_and_key").IsRequired();
         builder.Property(x => x.DateOfIssue).HasColumnName("date_of_issue").IsRequired();
@@ -114,9 +113,9 @@ internal class ExpiryStatusEntityTypeConfiguration : IEntityTypeConfiguration<Ex
     public void Configure(EntityTypeBuilder<ExpiryStatus> builder)
     {
         builder.ToTable("expiry_status");
-        
+
         builder.HasKey(x => x.Id);
-        
+
         builder.Property(x => x.Id).ValueGeneratedNever().HasColumnName("id").IsRequired();
         builder.Property(x => x.Name).HasColumnName("name").IsRequired();
 
@@ -131,23 +130,23 @@ internal class OutboxEventTypeConfiguration : IEntityTypeConfiguration<OutboxEve
         builder.ToTable("outbox");
 
         builder.HasKey(x => x.EventId);
-        
+
         builder.Property(x => x.EventId).ValueGeneratedNever().HasColumnName("event_id").IsRequired();
         builder.Property(x => x.Type).HasColumnName("type").IsRequired();
         builder.Property(x => x.Content).HasColumnName("content").IsRequired();
         builder.Property(x => x.OccurredOnUtc).HasColumnName("occurred_on_utc").IsRequired();
         builder.Property(x => x.ProcessedOnUtc).HasColumnName("processed_on_utc").IsRequired(false);
     }
-} 
+}
 
 internal class InboxEventTypeConfiguration : IEntityTypeConfiguration<InboxEvent>
 {
     public void Configure(EntityTypeBuilder<InboxEvent> builder)
     {
         builder.ToTable("inbox");
-        
+
         builder.HasKey(x => x.EventId);
-        
+
         builder.Property(x => x.EventId).ValueGeneratedNever().HasColumnName("event_id").IsRequired();
         builder.Property(x => x.Type).HasColumnName("type").IsRequired();
         builder.Property(x => x.Content).HasColumnName("content").IsRequired();

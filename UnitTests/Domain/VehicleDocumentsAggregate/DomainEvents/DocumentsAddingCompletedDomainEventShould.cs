@@ -26,10 +26,13 @@ public class DocumentsAddingCompletedDomainEventShould
     public void ThrowValueIsRequiredExceptionIfVehicleIdIsEmpty()
     {
         // Arrange
-        var vehicleId = Guid.Empty; 
+        var vehicleId = Guid.Empty;
 
         // Act
-        void Act() => new DocumentAddingCompletedDomainEvent(vehicleId);
+        void Act()
+        {
+            new DocumentAddingCompletedDomainEvent(vehicleId);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

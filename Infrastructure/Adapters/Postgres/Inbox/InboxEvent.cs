@@ -11,10 +11,4 @@ public class InboxEvent
     public required DateTime OccurredOnUtc { get; init; }
 
     public DateTime? ProcessedOnUtc { get; private set; }
-
-
-    public void MarkProcessed()
-    {
-        ProcessedOnUtc = DateTime.UtcNow;
-    }
 }

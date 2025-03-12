@@ -1,12 +1,13 @@
+using Application.Ports.Kafka;
 using Domain.OsagoAggregate.DomainEvents;
 using MediatR;
 
 namespace Application.DomainEventHandlers;
 
-public class OsagoExpiredHandler : INotificationHandler<OsagoExpiredDomainEvent>
+public class OsagoExpiredHandler(IMessageBus messageBus) : INotificationHandler<OsagoExpiredDomainEvent>
 {
-    public Task Handle(OsagoExpiredDomainEvent domainEvent, CancellationToken cancellationToken)
+    public async Task Handle(OsagoExpiredDomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await messageBus.Publish(domainEvent, cancellationToken);
     }
 }

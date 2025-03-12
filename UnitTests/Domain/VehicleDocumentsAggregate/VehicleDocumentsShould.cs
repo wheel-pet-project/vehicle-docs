@@ -11,9 +11,11 @@ public class VehicleDocumentsShould
 {
     private readonly Guid _vehicleId = Guid.NewGuid();
     private readonly Sts _sts = Sts.Create(new string('*', 10), new string('*', 10));
-    private readonly Pts _pts = Pts.Create(new string('*', 10), new string('*', 10), DateOnly.FromDateTime(DateTime.UtcNow),
-    Color.Beige, Vin.Create("SALYA2BN2KA791786"));
-    
+
+    private readonly Pts _pts = Pts.Create(new string('*', 10), new string('*', 10),
+        DateOnly.FromDateTime(DateTime.UtcNow),
+        Color.Beige, Vin.Create("SALYA2BN2KA791786"));
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -21,7 +23,7 @@ public class VehicleDocumentsShould
 
         // Act
         var actual = VehicleDocuments.Create(_vehicleId);
-        
+
         // Assert
         Assert.NotNull(actual);
         Assert.NotEqual(Guid.Empty, actual.Id);
@@ -37,7 +39,10 @@ public class VehicleDocumentsShould
         // Arrange
 
         // Act
-        void Act() => VehicleDocuments.Create(Guid.Empty);
+        void Act()
+        {
+            VehicleDocuments.Create(Guid.Empty);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -58,7 +63,7 @@ public class VehicleDocumentsShould
         Assert.NotNull(vehicleDocuments.Pts);
         Assert.Equal(pts, vehicleDocuments.Pts);
     }
-    
+
     [Fact]
     public void AddPtsChangeStatus()
     {
@@ -73,7 +78,7 @@ public class VehicleDocumentsShould
         // Assert
         Assert.True(vehicleDocuments.Status.IsPtsAdded);
     }
-    
+
     [Fact]
     public void AddPtsAddDomainEventIfAllDocumentsAreAdded()
     {
@@ -91,7 +96,7 @@ public class VehicleDocumentsShould
         // Assert
         Assert.NotEmpty(vehicleDocuments.DomainEvents);
     }
-    
+
     [Fact]
     public void AddPtsThrowValueIsRequiredExceptionIfPtsIsNull()
     {
@@ -99,12 +104,15 @@ public class VehicleDocumentsShould
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
 
         // Act
-        void Act() => vehicleDocuments.AddPts(null!);
+        void Act()
+        {
+            vehicleDocuments.AddPts(null!);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
-    
+
     [Fact]
     public void AddSts()
     {
@@ -119,7 +127,7 @@ public class VehicleDocumentsShould
         Assert.NotNull(vehicleDocuments.Sts);
         Assert.Equal(sts, vehicleDocuments.Sts);
     }
-    
+
     [Fact]
     public void AddStsChangeStatus()
     {
@@ -133,7 +141,7 @@ public class VehicleDocumentsShould
         // Assert
         Assert.True(vehicleDocuments.Status.IsStsAdded);
     }
-    
+
     [Fact]
     public void AddStsAddDomainEvent()
     {
@@ -158,7 +166,10 @@ public class VehicleDocumentsShould
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
 
         // Act
-        void Act() => vehicleDocuments.AddSts(null!);
+        void Act()
+        {
+            vehicleDocuments.AddSts(null!);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -177,7 +188,7 @@ public class VehicleDocumentsShould
         // Assert
         Assert.True(vehicleDocuments.Status.IsOsagoAdded);
     }
-    
+
     [Fact]
     public void MarkAsOsagoAddedAddDomainEvent()
     {

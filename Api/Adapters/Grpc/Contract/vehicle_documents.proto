@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Api";
+
+package vehicledocuments.v1;
+
+service VehicleDocuments {
+  rpc AddOsago (AddOsagoRequest) returns (AddOsagoResponse);
+  rpc AddPts (AddPtsRequest) returns (AddPtsResponse);
+  rpc AddSts (AddStsRequest) returns (AddStsResponse);
+  rpc GetVehicleDocumentsByVehicleId (GetVehicleDocumentsByVehicleIdRequest) returns (GetVehicleDocumentsByVehicleIdResponse);
+  rpc GetStsByVehicleDocumentsId (GetStsByVehicleDocumentsIdRequest) returns (GetStsByVehicleDocumentsIdResponse);
+  rpc GetPtsByVehicleDocumentsId (GetPtsByVehicleDocumentsIdRequest) returns (GetPtsByVehicleDocumentsIdResponse);
+  rpc GetOsagoByVehicleDocumentsId (GetOsagoByVehicleDocumentsIdRequest) returns (GetOsagoByVehicleDocumentsIdResponse);
+}
+
+enum Color{
+  WHITE_UNSPECIFIED = 0;
+  GREY = 1;
+  BLACK = 2;
+  BLUE = 3;
+  RED = 4;
+  YELLOW = 5;
+  ORANGE = 6;
+  GREEN = 7;
+  BEIGE = 8;
+}
+
+enum ExpiryStatus{
+  NOT_EXPIRED_UNSPECIFIED = 0;
+  EXPIRED = 1;
+}
+
+message AddOsagoRequest{
+  string vehicle_docs_id = 1;
+  bytes photo_bytes = 2;
+  google.protobuf.Timestamp date_of_issue = 3;
+  google.protobuf.Timestamp date_of_expiry = 4;
+}
+message AddOsagoResponse{}
+
+
+message AddPtsRequest{
+  string vehicle_docs_id = 1;
+  bytes front_photo_bytes = 2;
+  bytes back_photo_bytes = 3;
+  google.protobuf.Timestamp year_of_manufacture = 4;
+  Color color = 5;
+  string vin = 6;
+}
+message AddPtsResponse{}
+
+
+message AddStsRequest{
+  string vehicle_docs_id = 1;
+  bytes front_photo_bytes = 2;
+  bytes back_photo_bytes = 3;
+}
+message AddStsResponse{}
+
+
+message GetVehicleDocumentsByVehicleIdRequest{
+  string vehicle_id = 1;
+}
+message GetVehicleDocumentsByVehicleIdResponse{
+  string vehicle_docs_id = 1;
+  string vehicle_id = 2;
+  Status status = 3;
+  message Status{
+    bool is_pts_added = 1;
+    bool is_sts_added = 2;
+    bool is_osago_added = 3;
+  }
+}
+
+
+message GetStsByVehicleDocumentsIdRequest{
+  string vehicle_docs_id = 1;
+}
+message GetStsByVehicleDocumentsIdResponse{
+  string front_photo_s3_url = 1;
+  string back_photo_s3_url = 2;
+}
+
+
+message GetPtsByVehicleDocumentsIdRequest{
+  string vehicle_docs_id = 1;
+}
+message GetPtsByVehicleDocumentsIdResponse{
+  string front_photo_s3_url = 1;
+  string back_photo_s3_url = 2;
+  google.protobuf.Timestamp year_of_manufacture = 3;
+  Color color = 4;
+  string vin = 5;
+}
+
+
+message GetOsagoByVehicleDocumentsIdRequest{
+  string vehicle_docs_id = 1;
+}
+message GetOsagoByVehicleDocumentsIdResponse{
+  string photo_s3_url = 1;
+  ExpiryStatus expiry_status = 2;
+  google.protobuf.Timestamp date_of_issue = 3;
+  google.protobuf.Timestamp date_of_expiry = 4;
+}

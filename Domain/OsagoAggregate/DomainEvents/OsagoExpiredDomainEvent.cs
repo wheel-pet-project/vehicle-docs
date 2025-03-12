@@ -9,9 +9,9 @@ public record OsagoExpiredDomainEvent : DomainEvent
     {
         if (vehicleDocumentsId == Guid.Empty)
             throw new ValueIsRequiredException($"{nameof(vehicleDocumentsId)} cannot be empty.");
-        
+
         VehicleDocumentsId = vehicleDocumentsId;
     }
-    
+
     public Guid VehicleDocumentsId { get; }
 }

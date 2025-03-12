@@ -15,15 +15,15 @@ namespace UnitTests.Application.UseCases;
 public class AddStsToVehicleDocumentsHandlerShould
 {
     private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
-    
+
     private readonly AddStsToVehicleDocumentsCommand _command = new(Guid.NewGuid(), [1, 2, 3], [1, 2, 3]);
-    
+
     private readonly Mock<IVehicleDocumentsRepository> _vehicleDocumentsRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
     private readonly Mock<IS3Storage> _s3StorageMock = new();
     private readonly Mock<IImageFormatValidator> _imageFormatValidatorMock = new();
     private readonly Mock<IImageSizeValidator> _imageSizeValidatorMock = new();
-    
+
     private readonly AddStsToVehicleDocumentsHandler _handler;
 
     public AddStsToVehicleDocumentsHandlerShould()

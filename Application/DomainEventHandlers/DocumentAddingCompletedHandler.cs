@@ -1,12 +1,14 @@
+using Application.Ports.Kafka;
 using Domain.VehicleDocumentsAggregate.DomainEvents;
 using MediatR;
 
 namespace Application.DomainEventHandlers;
 
-public class DocumentAddingCompletedHandler : INotificationHandler<DocumentAddingCompletedDomainEvent>
+public class DocumentAddingCompletedHandler(IMessageBus messageBus)
+    : INotificationHandler<DocumentAddingCompletedDomainEvent>
 {
-    public Task Handle(DocumentAddingCompletedDomainEvent domainEvent, CancellationToken cancellationToken)
+    public async Task Handle(DocumentAddingCompletedDomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await messageBus.Publish(domainEvent, cancellationToken);
     }
 }

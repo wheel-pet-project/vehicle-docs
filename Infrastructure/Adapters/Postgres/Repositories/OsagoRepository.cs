@@ -9,7 +9,7 @@ public class OsagoRepository(DataContext context) : IOsagoRepository
     public async Task Add(Osago osago)
     {
         context.Attach(osago.ExpiryStatus);
-        
+
         await context.Osagos.AddAsync(osago);
     }
 
@@ -23,7 +23,7 @@ public class OsagoRepository(DataContext context) : IOsagoRepository
     public void Update(Osago osago)
     {
         context.Attach(osago.ExpiryStatus);
-        
+
         context.Osagos.Update(osago);
     }
 }

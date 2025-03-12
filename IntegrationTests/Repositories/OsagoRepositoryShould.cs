@@ -12,13 +12,13 @@ namespace IntegrationTests.Repositories;
 public class OsagoRepositoryShould : IntegrationTestBase
 {
     private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
-    
+
     [Fact]
     public async Task Add()
     {
         // Arrange
         await AddVehicleDocuments(_vehicleDocuments, Context);
-        
+
         var osago = Osago.Create(_vehicleDocuments.Id, "photoStorageBucketAndKey",
             DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1), DateOnly.FromDateTime(DateTime.UtcNow).AddMonths(1));
         var (repository, uow) = RepositoryAndUnitOfWorkBuilder.Build(Context);
@@ -39,13 +39,13 @@ public class OsagoRepositoryShould : IntegrationTestBase
     {
         // Arrange
         await AddVehicleDocuments(_vehicleDocuments, Context);
-        
+
         var osago = Osago.Create(_vehicleDocuments.Id, "photoStorageBucketAndKey",
             DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1), DateOnly.FromDateTime(DateTime.UtcNow));
-        
+
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(DateTime.UtcNow.AddDays(1));
-        
+
         var (repositoryForArrange, uowForArrange) = RepositoryAndUnitOfWorkBuilder.Build(Context);
         await repositoryForArrange.Add(osago);
         await uowForArrange.Commit();
@@ -69,15 +69,15 @@ public class OsagoRepositoryShould : IntegrationTestBase
     {
         // Arrange
         await AddVehicleDocuments(_vehicleDocuments, Context);
-        
+
         var osago = Osago.Create(_vehicleDocuments.Id, "photoStorageBucketAndKey",
             DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1), DateOnly.FromDateTime(DateTime.UtcNow).AddMonths(1));
-        
+
         var (repositoryForArrange, uowForArrange) = RepositoryAndUnitOfWorkBuilder.Build(Context);
         await repositoryForArrange.Add(osago);
         await uowForArrange.Commit();
         var (repository, _) = RepositoryAndUnitOfWorkBuilder.Build(Context);
-        
+
         // Act
         var actual = await repository.GetById(osago.Id);
 
@@ -92,7 +92,7 @@ public class OsagoRepositoryShould : IntegrationTestBase
         await context.VehicleDocuments.AddAsync(vehicleDocuments);
         await context.SaveChangesAsync();
     }
-    
+
     private static class RepositoryAndUnitOfWorkBuilder
     {
         public static (OsagoRepository, UnitOfWork) Build(DataContext context)

@@ -1,7 +1,7 @@
 using Application.Ports.ImageValidators;
 using Application.Ports.Postgres;
 using Application.Ports.S3;
-using Application.UseCases.Commands.AddOsagoToVehicleDocuments;
+using Application.UseCases.Commands.AddOsago;
 using Domain.SharedKernel.Errors;
 using Domain.VehicleDocumentsAggregate;
 using FluentResults;
@@ -16,14 +16,14 @@ public class AddOsagoHandlerShould
 
     private readonly AddOsagoCommand _command = new(Guid.NewGuid(), [1, 2, 3], DateOnly.FromDateTime(DateTime.UtcNow),
         DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1)));
-    
+
     private readonly Mock<IVehicleDocumentsRepository> _vehicleDocumentsRepositoryMock = new();
     private readonly Mock<IOsagoRepository> _osagoRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
     private readonly Mock<IS3Storage> _s3StorageMock = new();
     private readonly Mock<IImageFormatValidator> _imageFormatValidatorMock = new();
     private readonly Mock<IImageSizeValidator> _imageSizeValidatorMock = new();
-    
+
     private readonly AddOsagoHandler _handler;
 
     public AddOsagoHandlerShould()
@@ -34,8 +34,8 @@ public class AddOsagoHandlerShould
         _imageFormatValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(true);
         _imageSizeValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(true);
 
-        _handler = new AddOsagoHandler(_vehicleDocumentsRepositoryMock.Object, _osagoRepositoryMock.Object, 
-            _unitOfWorkMock.Object, _s3StorageMock.Object, _imageFormatValidatorMock.Object, 
+        _handler = new AddOsagoHandler(_vehicleDocumentsRepositoryMock.Object, _osagoRepositoryMock.Object,
+            _unitOfWorkMock.Object, _s3StorageMock.Object, _imageFormatValidatorMock.Object,
             _imageSizeValidatorMock.Object);
     }
 

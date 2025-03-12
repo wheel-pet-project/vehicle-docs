@@ -65,4 +65,32 @@ public class ExpiryExpiryShould
         // Assert
         Assert.Throws<ValueOutOfRangeException>(Act);
     }
+
+    [Fact]
+    public void EqualOperatorReturnTrueForEqualStatuses()
+    {
+        // Arrange
+        var status1 = ExpiryStatus.NotExpired;
+        var status2 = ExpiryStatus.NotExpired;
+
+        // Act
+        var actual = status1 == status2;
+
+        // Assert
+        Assert.True(actual);
+    }
+
+    [Fact]
+    public void NotEqualOperatorReturnTrueForDifferentStatuses()
+    {
+        // Arrange
+        var status1 = ExpiryStatus.NotExpired;
+        var status2 = ExpiryStatus.Expired;
+
+        // Act
+        var actual = status1 != status2;
+
+        // Assert
+        Assert.True(actual);
+    }
 }

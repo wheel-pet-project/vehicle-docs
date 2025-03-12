@@ -5,7 +5,6 @@ using Xunit;
 
 namespace UnitTests.Domain.SharedKernel.ValueObjects;
 
-
 [TestSubject(typeof(Vin))]
 public class VinShould
 {

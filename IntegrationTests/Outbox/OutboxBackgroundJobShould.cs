@@ -17,7 +17,7 @@ namespace IntegrationTests.Outbox;
 public class OutboxBackgroundJobShould : IntegrationTestBase
 {
     private readonly DomainEvent _domainEvent = new OsagoAddedDomainEvent(Guid.NewGuid());
-    
+
     [Fact]
     public async Task CallMediatorPublishMethod()
     {
@@ -50,7 +50,7 @@ public class OutboxBackgroundJobShould : IntegrationTestBase
         var eventFromDb = await Context.Outbox.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(eventFromDb.ProcessedOnUtc);
     }
-    
+
     private async Task AddDomainEventToDb(DomainEvent domainEvent)
     {
         var jsonSerializerSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };

@@ -63,22 +63,40 @@ public class StatusShould
     }
 
     [Theory]
-    [InlineData(1, 1, 0)]
-    [InlineData(0, 1, 1)]
-    [InlineData(0, 0, 0)]
-    [InlineData(1, 0, 1)]
-    public void AddingCompletedReturnFalseIfOneOfDocumentsNotAdded(int isPtsAdded, int isStsAdded, int isOsagoAdded)
+    [InlineData(true, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, false)]
+    [InlineData(true, false, true)]
+    public void AddingCompletedReturnFalseIfOneOfDocumentsNotAdded(bool isPtsAdded, bool isStsAdded, bool isOsagoAdded)
     {
         // Arrange
         var status = Status.Create();
-        if (isPtsAdded == 1) status.MarkAsPtsAdded();
-        if (isStsAdded == 1) status.MarkAsStsAdded();
-        if (isOsagoAdded == 1) status.MarkAsOsagoAdded();
+        if (isPtsAdded) status.MarkAsPtsAdded();
+        if (isStsAdded) status.MarkAsStsAdded();
+        if (isOsagoAdded) status.MarkAsOsagoAdded();
 
         // Act
         var actual = status.AddingCompleted;
 
         // Assert
         Assert.False(actual);
+    }
+
+    [Theory]
+    [InlineData(true, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, false)]
+    [InlineData(true, false, true)]
+    public void FromValuesReturnCorrectStatus(bool isPtsAdded, bool isStsAdded, bool isOsagoAdded)
+    {
+        // Arrange
+
+        // Act
+        var actual = Status.FromValues(isPtsAdded, isStsAdded, isOsagoAdded);
+
+        // Assert
+        Assert.Equal(isPtsAdded, actual.IsPtsAdded);
+        Assert.Equal(isStsAdded, actual.IsStsAdded);
+        Assert.Equal(isOsagoAdded, actual.IsOsagoAdded);
     }
 }

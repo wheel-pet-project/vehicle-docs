@@ -10,12 +10,14 @@ namespace Domain.OsagoAggregate;
 /// </summary>
 public sealed class Osago : Aggregate
 {
-    private Osago() {}
+    private Osago()
+    {
+    }
 
     private Osago(
-        Guid vehicleDocumentsId, 
-        string photoStorageBucketAndKey, 
-        DateOnly dateOfIssue, 
+        Guid vehicleDocumentsId,
+        string photoStorageBucketAndKey,
+        DateOnly dateOfIssue,
         DateOnly dateOfExpiry) : this()
     {
         Id = Guid.NewGuid();
@@ -25,13 +27,13 @@ public sealed class Osago : Aggregate
         DateOfIssue = dateOfIssue;
         DateOfExpiry = dateOfExpiry;
     }
-    
+
     public Guid Id { get; }
     public Guid VehicleDocumentsId { get; }
     public string PhotoStorageBucketAndKey { get; } = null!;
     public ExpiryStatus ExpiryStatus { get; private set; } = null!;
     public DateOnly DateOfIssue { get; }
-    public DateOnly DateOfExpiry  { get; }
+    public DateOnly DateOfExpiry { get; }
 
     public bool IsExpired(TimeProvider timeProvider)
     {
@@ -42,31 +44,34 @@ public sealed class Osago : Aggregate
     {
         if (timeProvider.GetUtcNow().UtcDateTime < DateOfExpiry.ToDateTime(new TimeOnly()))
             throw new DomainRulesViolationException($"{nameof(DateOfExpiry)} not come yet");
-        
+
         ExpiryStatus = ExpiryStatus.Expired;
-        
+
         AddDomainEvent(new OsagoExpiredDomainEvent(VehicleDocumentsId));
     }
 
     public static Osago Create(
-        Guid vehicleDocumentsId, 
-        string photoStorageBucketAndKey, 
-        DateOnly dateOfIssue, 
+        Guid vehicleDocumentsId,
+        string photoStorageBucketAndKey,
+        DateOnly dateOfIssue,
         DateOnly dateOfExpiry)
     {
-        if (vehicleDocumentsId == Guid.Empty) throw new ValueIsRequiredException(
-            $"{nameof(vehicleDocumentsId)} cannot be empty");
-        if (string.IsNullOrWhiteSpace(photoStorageBucketAndKey)) throw new ValueIsRequiredException(
-            $"{nameof(photoStorageBucketAndKey)} cannot be null or whitespace");
+        if (vehicleDocumentsId == Guid.Empty)
+            throw new ValueIsRequiredException(
+                $"{nameof(vehicleDocumentsId)} cannot be empty");
+        if (string.IsNullOrWhiteSpace(photoStorageBucketAndKey))
+            throw new ValueIsRequiredException(
+                $"{nameof(photoStorageBucketAndKey)} cannot be null or whitespace");
         if (dateOfIssue == default) throw new ValueOutOfRangeException($"{nameof(dateOfIssue)} cannot be default");
         if (dateOfExpiry == default) throw new ValueOutOfRangeException($"{nameof(dateOfExpiry)} cannot be default");
-        if (dateOfIssue > dateOfExpiry) throw new DomainRulesViolationException(
+        if (dateOfIssue > dateOfExpiry)
+            throw new DomainRulesViolationException(
                 $"{nameof(dateOfIssue)} cannot be greater than {nameof(dateOfExpiry)}");
-        
+
         var osago = new Osago(vehicleDocumentsId, photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
-        
+
         osago.AddDomainEvent(new OsagoAddedDomainEvent(osago.VehicleDocumentsId));
-        
+
         return osago;
     }
 }

@@ -16,7 +16,7 @@ public class S3Storage(
     ILogger<S3Storage> logger) : IS3Storage
 {
     private readonly S3Options _s3Options = options.Value;
-    
+
     public async Task<Result<(string frontPhotoBucketAndKey, string backPhotoBucketAndKey)>> SavePhotos(
         List<byte> frontPhotoBytes,
         List<byte> backPhotoBytes)
@@ -78,7 +78,7 @@ public class S3Storage(
     {
         var rnd = new Random();
         var currentBucket = _s3Options.Buckets[rnd.Next(_s3Options.Buckets.Length)];
-        
+
         try
         {
             if (photoBytes is null)

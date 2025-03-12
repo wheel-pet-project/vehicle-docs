@@ -8,7 +8,9 @@ namespace Domain.SharedKernel.ValueObjects;
 /// </summary>
 public class Sts : ValueObject
 {
-    private Sts(){}
+    private Sts()
+    {
+    }
 
     private Sts(string frontPhotoStorageBucketAndKey, string backPhotoStorageBucketAndKey) : this()
     {
@@ -28,7 +30,7 @@ public class Sts : ValueObject
 
         return new Sts(frontPhotoStorageBucketAndKey, backPhotoStorageBucketAndKey);
     }
-    
+
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return FrontPhotoStorageBucketAndKey;

@@ -8,7 +8,9 @@ namespace Domain.SharedKernel.ValueObjects;
 /// </summary>
 public class Pts : ValueObject
 {
-    private Pts() { }
+    private Pts()
+    {
+    }
 
     private Pts(
         string frontPhotoStorageBucketAndKey,
@@ -23,7 +25,7 @@ public class Pts : ValueObject
         Color = color;
         Vin = vin;
     }
-    
+
     public string FrontPhotoStorageBucketAndKey { get; } = null!;
     public string BackPhotoStorageBucketAndKey { get; } = null!;
     public DateOnly YearOfManufacture { get; }

@@ -1,10 +1,11 @@
+using FluentResults;
 using MediatR;
 
 namespace Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;
 
 public interface IInputConsumerEvent
 {
-    public Guid EventId { get; init; }
+    public Guid EventId { get; }
 
-    IRequest<bool> ToCommand();
+    IRequest<Result> ToCommand();
 }

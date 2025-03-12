@@ -7,7 +7,9 @@ namespace Domain.VehicleDocumentsAggregate;
 
 public sealed class VehicleDocuments : Aggregate
 {
-    private VehicleDocuments() { }
+    private VehicleDocuments()
+    {
+    }
 
     private VehicleDocuments(Guid vehicleId) : this()
     {
@@ -15,7 +17,7 @@ public sealed class VehicleDocuments : Aggregate
         VehicleId = vehicleId;
         Status = Status.Create();
     }
-    
+
     public Guid Id { get; }
     public Guid VehicleId { get; }
     public Status Status { get; } = null!;
@@ -25,9 +27,9 @@ public sealed class VehicleDocuments : Aggregate
     public void AddPts(Pts potentialPts)
     {
         if (potentialPts == null) throw new ValueIsRequiredException($"{nameof(potentialPts)} cannot be null");
-        
+
         Pts = potentialPts;
-        
+
         Status.MarkAsPtsAdded();
         if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
     }
@@ -35,9 +37,9 @@ public sealed class VehicleDocuments : Aggregate
     public void AddSts(Sts potentialSts)
     {
         if (potentialSts == null) throw new ValueIsRequiredException($"{nameof(potentialSts)} cannot be null");
-        
+
         Sts = potentialSts;
-        
+
         Status.MarkAsStsAdded();
         if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
     }
@@ -53,5 +55,15 @@ public sealed class VehicleDocuments : Aggregate
         if (vehicleId == Guid.Empty) throw new ValueIsRequiredException($"{nameof(vehicleId)} cannot be empty");
 
         return new VehicleDocuments(vehicleId);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || (obj is VehicleDocuments documents && Id == documents.Id);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), Id);
     }
 }

@@ -14,7 +14,7 @@ public class OsagoShould
     private readonly string _photoStorageBucketAndKey = "photoStorageBucketAndKey";
     private readonly DateOnly _dateOfIssue = DateOnly.FromDateTime(DateTime.Now);
     private readonly DateOnly _dateOfExpiry = DateOnly.FromDateTime(DateTime.Now.AddYears(1));
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -38,12 +38,15 @@ public class OsagoShould
         // Arrange
 
         // Act
-        void Act() => Osago.Create(Guid.Empty, _photoStorageBucketAndKey, _dateOfIssue, _dateOfExpiry);
+        void Act()
+        {
+            Osago.Create(Guid.Empty, _photoStorageBucketAndKey, _dateOfIssue, _dateOfExpiry);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
-    
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -53,9 +56,12 @@ public class OsagoShould
         // Arrange
 
         // Act
-void Act() => Osago.Create(_vehicleDocumentsId, nullOrEmpty, _dateOfIssue, _dateOfExpiry);
+        void Act()
+        {
+            Osago.Create(_vehicleDocumentsId, nullOrEmpty, _dateOfIssue, _dateOfExpiry);
+        }
 
-        // Assert
+// Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
 
@@ -65,9 +71,12 @@ void Act() => Osago.Create(_vehicleDocumentsId, nullOrEmpty, _dateOfIssue, _date
         // Arrange
 
         // Act
-void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, default, _dateOfExpiry);
+        void Act()
+        {
+            Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, default, _dateOfExpiry);
+        }
 
-        // Assert
+// Assert
         Assert.Throws<ValueOutOfRangeException>(Act);
     }
 
@@ -77,7 +86,10 @@ void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, defau
         // Arrange
 
         // Act
-        void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, _dateOfIssue, default);
+        void Act()
+        {
+            Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, _dateOfIssue, default);
+        }
 
         // Assert
         Assert.Throws<ValueOutOfRangeException>(Act);
@@ -91,7 +103,10 @@ void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, defau
         var dateOfExpiry = DateOnly.FromDateTime(DateTime.Now);
 
         // Act
-        void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
+        void Act()
+        {
+            Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
+        }
 
         // Assert
         Assert.Throws<DomainRulesViolationException>(Act);
@@ -106,7 +121,7 @@ void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, defau
         var osago = Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(DateTimeOffset.UtcNow.AddDays(-10));
-        
+
         // Act
         var actual = osago.IsExpired(fakeTimeProvider);
 
@@ -123,7 +138,7 @@ void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, defau
         var osago = Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(DateTimeOffset.UtcNow.AddDays(+10));
-        
+
         // Act
         var actual = osago.IsExpired(fakeTimeProvider);
 
@@ -140,14 +155,14 @@ void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, defau
         var osago = Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(new DateTimeOffset(DateTime.Now.AddDays(1)));
-        
+
         // Act
         osago.Expire(fakeTimeProvider);
 
         // Assert
         Assert.Equal(ExpiryStatus.Expired, osago.ExpiryStatus);
     }
-    
+
     [Fact]
     public void ThrowDomainRulesViolationExceptionIfExpireCallingIfDateOfExpiryNotComeYet()
     {
@@ -157,9 +172,12 @@ void Act() => Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, defau
         var osago = Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(DateTimeOffset.UtcNow);
-        
+
         // Act
-        void Act() => osago.Expire(fakeTimeProvider);
+        void Act()
+        {
+            osago.Expire(fakeTimeProvider);
+        }
 
         // Assert
         Assert.Throws<DomainRulesViolationException>(Act);

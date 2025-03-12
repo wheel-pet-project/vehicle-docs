@@ -10,17 +10,17 @@ namespace UnitTests.Application.UseCases;
 [TestSubject(typeof(AddVehicleDocumentsHandler))]
 public class AddVehicleDocumentsHandlerShould
 {
-    private readonly AddVehicleDocumentsCommand _command = new AddVehicleDocumentsCommand(Guid.NewGuid());
-    
+    private readonly AddVehicleDocumentsCommand _command = new(Guid.NewGuid());
+
     private readonly Mock<IVehicleDocumentsRepository> _vehicleDocumentsRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
-    
+
     private readonly AddVehicleDocumentsHandler _handler;
 
     public AddVehicleDocumentsHandlerShould()
     {
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
-        
+
         _handler = new AddVehicleDocumentsHandler(_vehicleDocumentsRepositoryMock.Object, _unitOfWorkMock.Object);
     }
 

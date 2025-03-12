@@ -6,7 +6,7 @@ using MediatR;
 namespace Application.UseCases.Commands.AddVehicleDocuments;
 
 public class AddVehicleDocumentsHandler(
-    IVehicleDocumentsRepository vehicleDocumentsRepository, 
+    IVehicleDocumentsRepository vehicleDocumentsRepository,
     IUnitOfWork unitOfWork) : IRequestHandler<AddVehicleDocumentsCommand, Result>
 {
     public async Task<Result> Handle(AddVehicleDocumentsCommand command, CancellationToken _)

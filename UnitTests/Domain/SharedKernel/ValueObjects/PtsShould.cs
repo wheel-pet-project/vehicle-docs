@@ -13,7 +13,7 @@ public class PtsShould
     private readonly DateOnly _yearOfManufacture = DateOnly.FromDateTime(DateTime.Now.AddYears(-2));
     private readonly Color _color = Color.Black;
     private readonly Vin _vin = Vin.Create("SALYA2BN2KA791786");
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -41,9 +41,12 @@ public class PtsShould
         // Arrange
 
         // Act
-void Act() => Pts.Create(nullOrEmpty, _backPhotoStorageBucketAndKey, _yearOfManufacture, _color, _vin);
+        void Act()
+        {
+            Pts.Create(nullOrEmpty, _backPhotoStorageBucketAndKey, _yearOfManufacture, _color, _vin);
+        }
 
-        // Assert
+// Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
 
@@ -56,7 +59,10 @@ void Act() => Pts.Create(nullOrEmpty, _backPhotoStorageBucketAndKey, _yearOfManu
         // Arrange
 
         // Act
-        void Act() => Pts.Create(_frontPhotoStorageBucketAndKey, nullOrEmpty, _yearOfManufacture, _color, _vin);
+        void Act()
+        {
+            Pts.Create(_frontPhotoStorageBucketAndKey, nullOrEmpty, _yearOfManufacture, _color, _vin);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -68,7 +74,10 @@ void Act() => Pts.Create(nullOrEmpty, _backPhotoStorageBucketAndKey, _yearOfManu
         // Arrange
 
         // Act
-        void Act() => Pts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketAndKey, default, _color, _vin);
+        void Act()
+        {
+            Pts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketAndKey, default, _color, _vin);
+        }
 
         // Assert
         Assert.Throws<ValueOutOfRangeException>(Act);
@@ -79,8 +88,11 @@ void Act() => Pts.Create(nullOrEmpty, _backPhotoStorageBucketAndKey, _yearOfManu
     {
         // Arrange
 
-        void Act() => Pts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketAndKey, _yearOfManufacture,
-            null!, _vin);
+        void Act()
+        {
+            Pts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketAndKey, _yearOfManufacture,
+                null!, _vin);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -92,8 +104,11 @@ void Act() => Pts.Create(nullOrEmpty, _backPhotoStorageBucketAndKey, _yearOfManu
         // Arrange
 
         // Act
-        void Act() => Pts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketAndKey, _yearOfManufacture,
-            _color, null!);
+        void Act()
+        {
+            Pts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketAndKey, _yearOfManufacture,
+                _color, null!);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

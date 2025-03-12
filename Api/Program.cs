@@ -1,5 +1,5 @@
 using Api.Interceptors;
-using Api.Services;
+using Application.UseCases.Queries.DapperMappingExtensions;
 
 namespace Api;
 
@@ -9,7 +9,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         var services = builder.Services;
-        
+
         services.AddGrpc(options =>
         {
             options.Interceptors.Add<ExceptionHandlerInterceptor>();
@@ -21,9 +21,16 @@ public class Program
             .RegisterPostgresContextAndDataSource();
 
         var app = builder.Build();
-        
-        app.MapGrpcService<GreeterService>();
+
+        // app.MapGrpcService<GreeterService>();
+
+        RegisterDapperMapping();
 
         app.Run();
+
+        void RegisterDapperMapping()
+        {
+            Dapper.SqlMapper.AddTypeHandler(new DateOnlyMapper());
+        }
     }
 }

@@ -26,10 +26,13 @@ public class OsagoExpiredDomainEventShould
     public void ThrowValueIsRequiredExceptionIfVehicleIdIsEmpty()
     {
         // Arrange
-        var vehicleDocumentsId = Guid.Empty; 
+        var vehicleDocumentsId = Guid.Empty;
 
         // Act
-        void Act() => new OsagoExpiredDomainEvent(vehicleDocumentsId);
+        void Act()
+        {
+            new OsagoExpiredDomainEvent(vehicleDocumentsId);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

@@ -73,8 +73,8 @@ public class InboxBackgroundJob(
         {
             try
             {
-                var isSuccess = await mediator.Send(@event.ToCommand(), cancellationToken);
-                if (isSuccess) updateQueue.Enqueue(@event.EventId);
+                var processingResult = await mediator.Send(@event.ToCommand(), cancellationToken);
+                if (processingResult.IsSuccess) updateQueue.Enqueue(@event.EventId);
             }
             catch (Exception e)
             {

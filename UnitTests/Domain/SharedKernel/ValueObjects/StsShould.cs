@@ -10,14 +10,14 @@ public class StsShould
 {
     private readonly string _frontPhotoStorageBucketAndKey = "frontPhotoStorageBucketAndKey";
     private readonly string _backPhotoStorageBucketAndKey = "backPhotoStorageBucketAndKey";
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
         // Arrange
 
         // Act
-var actual = Sts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketAndKey);
+        var actual = Sts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketAndKey);
 
         // Assert
         Assert.NotNull(actual);
@@ -34,7 +34,10 @@ var actual = Sts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketA
         // Arrange
 
         // Act
-        void Act() => Sts.Create(nullOrEmpty, _backPhotoStorageBucketAndKey);
+        void Act()
+        {
+            Sts.Create(nullOrEmpty, _backPhotoStorageBucketAndKey);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -47,9 +50,12 @@ var actual = Sts.Create(_frontPhotoStorageBucketAndKey, _backPhotoStorageBucketA
     public void ThrowValueIsRequiredExceptionIfBackPhotoStorageBucketAndKeyIsNullOrEmpty(string nullOrEmpty)
     {
         // Arrange
-        
+
         // Act
-        void Act() => Sts.Create(_frontPhotoStorageBucketAndKey, nullOrEmpty);
+        void Act()
+        {
+            Sts.Create(_frontPhotoStorageBucketAndKey, nullOrEmpty);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

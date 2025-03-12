@@ -49,7 +49,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection RegisterMediatorAndHandlers(this IServiceCollection services)
     {
         // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AddModelHandler).Assembly));
-        
+
         return services;
     }
 
@@ -88,7 +88,7 @@ public static class ServiceCollectionExtensions
     {
         // services.AddScoped<ColorMapper>();
         // services.AddScoped<StatusMapper>();
-        
+
         return services;
     }
 

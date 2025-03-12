@@ -1,7 +1,7 @@
 using FluentResults;
 using MediatR;
 
-namespace Application.UseCases.Commands.AddOsagoToVehicleDocuments;
+namespace Application.UseCases.Commands.AddOsago;
 
 public record AddOsagoCommand(
     Guid VehicleDocumentsId,

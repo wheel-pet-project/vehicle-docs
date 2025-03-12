@@ -26,10 +26,13 @@ public class OsagoAddedDomainEventShould
     public void ThrowValueIsRequiredExceptionIfVehicleIdIsEmpty()
     {
         // Arrange
-        var vehicleDocumentsId = Guid.Empty; 
+        var vehicleDocumentsId = Guid.Empty;
 
         // Act
-        void Act() => new OsagoAddedDomainEvent(vehicleDocumentsId);
+        void Act()
+        {
+            new OsagoAddedDomainEvent(vehicleDocumentsId);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

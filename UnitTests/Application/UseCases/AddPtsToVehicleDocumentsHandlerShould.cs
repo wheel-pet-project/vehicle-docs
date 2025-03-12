@@ -19,13 +19,13 @@ public class AddPtsToVehicleDocumentsHandlerShould
 
     private readonly AddPtsToVehicleDocumentsCommand _command = new(Guid.NewGuid(), [1, 2, 3], [1, 2, 3],
         DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1), Color.Blue, "SALYA2BN2KA791786");
-    
+
     private readonly Mock<IVehicleDocumentsRepository> _vehicleDocumentsRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
     private readonly Mock<IS3Storage> _s3StorageMock = new();
     private readonly Mock<IImageFormatValidator> _imageFormatValidatorMock = new();
     private readonly Mock<IImageSizeValidator> _imageSizeValidatorMock = new();
-    
+
     private readonly AddPtsToVehicleDocumentsHandler _handler;
 
     public AddPtsToVehicleDocumentsHandlerShould()
