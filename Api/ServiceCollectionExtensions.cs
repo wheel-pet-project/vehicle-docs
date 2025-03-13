@@ -58,7 +58,7 @@ public static class ServiceCollectionExtensions
                 PostgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password",
                 AwsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") ?? "aws_access_key_id",
                 AwsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY") ?? "aws_secret_access_key",
-                AwsServiceUrl = Environment.GetEnvironmentVariable("AWS_SERVICE_URL") ?? "aws_service_url",
+                AwsServiceUrl = Environment.GetEnvironmentVariable("AWS_S3_SERVICE_URL") ?? "aws_service_url",
                 AwsStsBuckets = (Environment.GetEnvironmentVariable("AWS_STS_BUCKETS") ?? "default_bucket").Split("__"),
                 AwsPtsBuckets = (Environment.GetEnvironmentVariable("AWS_PTS_BUCKETS") ?? "default_bucket").Split("__"),
                 AwsOsagoBuckets = (Environment.GetEnvironmentVariable("AWS_OSAGO_BUCKETS") ??
@@ -81,7 +81,7 @@ public static class ServiceCollectionExtensions
                 PostgresPassword = GetEnvironmentOrThrow("POSTGRES_PASSWORD"),
                 AwsAccessKeyId = GetEnvironmentOrThrow("AWS_ACCESS_KEY_ID"),
                 AwsSecretAccessKey = GetEnvironmentOrThrow("AWS_ACCESS_KEY"),
-                AwsServiceUrl = GetEnvironmentOrThrow("AWS_SERVICE_URL"),
+                AwsServiceUrl = GetEnvironmentOrThrow("AWS_S3_SERVICE_URL"),
                 AwsStsBuckets = GetEnvironmentOrThrow("AWS_STS_BUCKETS").Split("__"),
                 AwsPtsBuckets = GetEnvironmentOrThrow("AWS_PTS_BUCKETS").Split("__"),
                 AwsOsagoBuckets = GetEnvironmentOrThrow("AWS_OSAGO_BUCKETS").Split("__"),
