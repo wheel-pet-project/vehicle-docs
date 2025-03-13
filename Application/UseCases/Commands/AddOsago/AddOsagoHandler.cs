@@ -27,7 +27,7 @@ public class AddOsagoHandler(
         if (sizeValidator.IsSupportedSize(command.PhotoBytes.Count) is false)
             return Result.Fail("Image size is too large");
 
-        var uploadingToS3Result = await s3Storage.SavePhoto(command.PhotoBytes);
+        var uploadingToS3Result = await s3Storage.SavePhoto(command.PhotoBytes, DocumentType.Osago);
         if (uploadingToS3Result.IsFailed) return Result.Fail(uploadingToS3Result.Errors);
         var photoBucketAndKey = uploadingToS3Result.Value;
 

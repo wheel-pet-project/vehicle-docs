@@ -19,10 +19,10 @@ public class S3Storage(
 
     public async Task<Result<(string frontPhotoBucketAndKey, string backPhotoBucketAndKey)>> SavePhotos(
         List<byte> frontPhotoBytes,
-        List<byte> backPhotoBytes)
+        List<byte> backPhotoBytes,
+        DocumentType documentType)
     {
-        var rnd = new Random();
-        var currentBucket = _s3Options.Buckets[rnd.Next(_s3Options.Buckets.Length)];
+        var currentBucket = GetCurrentBucket(documentType);
 
         try
         {
@@ -74,10 +74,9 @@ public class S3Storage(
         }
     }
 
-    public async Task<Result<string>> SavePhoto(List<byte> photoBytes)
+    public async Task<Result<string>> SavePhoto(List<byte> photoBytes, DocumentType documentType)
     {
-        var rnd = new Random();
-        var currentBucket = _s3Options.Buckets[rnd.Next(_s3Options.Buckets.Length)];
+        var currentBucket = GetCurrentBucket(documentType);
 
         try
         {
@@ -114,5 +113,19 @@ public class S3Storage(
             logger.LogWarning("Time-out for uploading photos has expired, exception: {ex}", ex);
             return Result.Fail("Time-out for uploading photos has expired.");
         }
+    }
+
+    private string GetCurrentBucket(DocumentType documentType)
+    {
+        var rnd = new Random();
+        var currentBucket = documentType switch
+        {
+            DocumentType.Sts => _s3Options.StsBuckets[rnd.Next(_s3Options.StsBuckets.Length)],
+            DocumentType.Pts => _s3Options.PtsBuckets[rnd.Next(_s3Options.PtsBuckets.Length)],
+            DocumentType.Osago => _s3Options.OsagoBuckets[rnd.Next(_s3Options.OsagoBuckets.Length)],
+            _ => throw new ValueOutOfRangeException($"{nameof(documentType)} is unknown")
+        };
+        
+        return currentBucket;
     }
 }

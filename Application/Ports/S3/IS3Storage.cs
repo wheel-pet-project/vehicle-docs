@@ -6,7 +6,15 @@ public interface IS3Storage
 {
     Task<Result<(string frontPhotoBucketAndKey, string backPhotoBucketAndKey)>> SavePhotos(
         List<byte> frontPhotoBytes,
-        List<byte> backPhotoBytes);
+        List<byte> backPhotoBytes,
+        DocumentType documentType);
 
-    Task<Result<string>> SavePhoto(List<byte> photoBytes);
+    Task<Result<string>> SavePhoto(List<byte> photoBytes, DocumentType documentType);
+}
+
+public enum DocumentType
+{
+    Sts = 0,
+    Pts = 1,
+    Osago = 2
 }

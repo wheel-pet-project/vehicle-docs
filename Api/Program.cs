@@ -1,3 +1,4 @@
+using Api.Adapters.Grpc;
 using Api.Interceptors;
 using Application.UseCases.Queries.DapperMappingExtensions;
 
@@ -18,11 +19,21 @@ public class Program
         });
 
         services
-            .RegisterPostgresContextAndDataSource();
+            .RegisterPostgresContextAndDataSource()
+            .RegisterS3Storage()
+            .RegisterMediatorAndHandlers()
+            .RegisterInboxAndOutboxBackgroundJobs()
+            .RegisterSerilog()
+            .RegisterRepositories()
+            .RegisterUnitOfWork()
+            .RegisterEnumMappers()
+            .RegisterMassTransit()
+            .RegisterTelemetry()
+            .RegisterHealthCheckV1();
 
         var app = builder.Build();
 
-        // app.MapGrpcService<GreeterService>();
+        app.MapGrpcService<VehicleDocumentsV1>();
 
         RegisterDapperMapping();
 

@@ -1,9 +1,37 @@
+using System.Reflection;
+using Amazon.Runtime;
+using Amazon.S3;
+using Api.Adapters.Grpc.EnumMappers;
+using Application.DomainEventHandlers;
+using Application.Ports.Kafka;
+using Application.Ports.Postgres;
+using Application.Ports.S3;
+using Application.UseCases.Commands.AddOsago;
+using Application.UseCases.Commands.AddPtsToVehicleDocuments;
+using Application.UseCases.Commands.AddStsToVehicleDocuments;
+using Application.UseCases.Commands.AddVehicleDocuments;
+using Application.UseCases.Queries.GetOsagoByVehicleDocumentsId;
+using Application.UseCases.Queries.GetPtsByVehicleDocumentsId;
+using Application.UseCases.Queries.GetStsByVehicleDocumentsId;
+using Application.UseCases.Queries.GetVehicleDocumentsByVehicleId;
+using Domain.OsagoAggregate.DomainEvents;
+using Domain.VehicleDocumentsAggregate.DomainEvents;
+using FluentResults;
+using From.VehicleDocumentsKafkaEvents;
+using Infrastructure.Adapters.Kafka;
 using Infrastructure.Adapters.Postgres;
+using Infrastructure.Adapters.Postgres.Outbox;
+using Infrastructure.Adapters.Postgres.Repositories;
+using Infrastructure.Adapters.S3;
+using Infrastructure.Options;
+using MassTransit;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Quartz;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -12,6 +40,68 @@ namespace Api;
 
 public static class ServiceCollectionExtensions
 {
+    private static readonly Configuration Configuration;
+    
+    static ServiceCollectionExtensions()
+    {
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+        Configuration = environment switch
+        {
+            "Development" => new Configuration
+            {
+                ApplicationName = "Vehicle_documents#" + Environment.MachineName,
+                PostgresHost = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost",
+                PostgresPort = int.Parse(Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5450"),
+                PostgresDatabase = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "vehicledocuments_db",
+                PostgresUsername = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres",
+                PostgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password",
+                AwsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") ?? "aws_access_key_id",
+                AwsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY") ?? "aws_secret_access_key",
+                AwsServiceUrl = Environment.GetEnvironmentVariable("AWS_SERVICE_URL") ?? "aws_service_url",
+                AwsStsBuckets = (Environment.GetEnvironmentVariable("AWS_STS_BUCKETS") ?? "default_bucket").Split("__"),
+                AwsPtsBuckets = (Environment.GetEnvironmentVariable("AWS_PTS_BUCKETS") ?? "default_bucket").Split("__"),
+                AwsOsagoBuckets = (Environment.GetEnvironmentVariable("AWS_OSAGO_BUCKETS") ??
+                                   "default_bucket").Split("__"),
+                BootstrapServers = (Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS") ?? 
+                                    "localhost:9092").Split("__"),
+                OsagoExpiredTopic = Environment.GetEnvironmentVariable("OSAGO_EXPIRED_TOPIC") ?? "osago_expired_topic",
+                DocumentAddingCompletedTopic = Environment.GetEnvironmentVariable("DOCUMENTS_ADDING_COMPLETED_TOPIC") ??
+                                               "documents_adding_completed_topic",
+                MongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ??
+                                        "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin"
+            },
+            "Production" => new Configuration
+            {
+                ApplicationName = "Vehicle_documents#" + Environment.MachineName,
+                PostgresHost = GetEnvironmentOrThrow("POSTGRES_HOST"),
+                PostgresPort = int.Parse(GetEnvironmentOrThrow("POSTGRES_PORT")),
+                PostgresDatabase =GetEnvironmentOrThrow("POSTGRES_DB"),
+                PostgresUsername = GetEnvironmentOrThrow("POSTGRES_USER"),
+                PostgresPassword = GetEnvironmentOrThrow("POSTGRES_PASSWORD"),
+                AwsAccessKeyId = GetEnvironmentOrThrow("AWS_ACCESS_KEY_ID"),
+                AwsSecretAccessKey = GetEnvironmentOrThrow("AWS_ACCESS_KEY"),
+                AwsServiceUrl = GetEnvironmentOrThrow("AWS_SERVICE_URL"),
+                AwsStsBuckets = GetEnvironmentOrThrow("AWS_STS_BUCKETS").Split("__"),
+                AwsPtsBuckets = GetEnvironmentOrThrow("AWS_PTS_BUCKETS").Split("__"),
+                AwsOsagoBuckets = GetEnvironmentOrThrow("AWS_OSAGO_BUCKETS").Split("__"),
+                BootstrapServers = GetEnvironmentOrThrow("BOOTSTRAP_SERVERS").Split("__"),
+                OsagoExpiredTopic = GetEnvironmentOrThrow("OSAGO_EXPIRED_TOPIC"),
+                DocumentAddingCompletedTopic = GetEnvironmentOrThrow("DOCUMENTS_ADDING_COMPLETED_TOPIC"),
+                MongoConnectionString = GetEnvironmentOrThrow("MONGO_CONNECTION_STRING")
+            },
+            _ => throw new ArgumentException("Unknown environment")
+        };
+        
+        return;
+
+        string GetEnvironmentOrThrow(string environmentName)
+        {
+            return Environment.GetEnvironmentVariable(environmentName) ??
+                throw new ArgumentNullException(environmentName, "not exist in environment variables");
+        }
+    }
+
     public static IServiceCollection RegisterPostgresContextAndDataSource(this IServiceCollection services)
     {
         services.AddScoped<NpgsqlDataSource>(_ =>
@@ -20,12 +110,12 @@ public static class ServiceCollectionExtensions
             {
                 ConnectionStringBuilder =
                 {
-                    ApplicationName = "Vehicle_documents#" + Environment.MachineName,
-                    Host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost",
-                    Port = int.Parse(Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5450"),
-                    Database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "vehicledocuments_db",
-                    Username = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres",
-                    Password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password",
+                    ApplicationName = Configuration.ApplicationName,
+                    Host = Configuration.PostgresHost,
+                    Port = Configuration.PostgresPort,
+                    Database = Configuration.PostgresDatabase,
+                    Username = Configuration.PostgresUsername,
+                    Password = Configuration.PostgresPassword,
                     BrowsableConnectionString = false
                 }
             };
@@ -48,7 +138,39 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection RegisterMediatorAndHandlers(this IServiceCollection services)
     {
-        // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AddModelHandler).Assembly));
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+        // Commands
+        services.AddTransient<IRequestHandler<AddOsagoCommand, Result>, AddOsagoHandler>();
+        services.AddTransient<IRequestHandler<AddPtsToVehicleDocumentsCommand, Result>, 
+            AddPtsToVehicleDocumentsHandler>();
+        services.AddTransient<IRequestHandler<AddStsToVehicleDocumentsCommand, Result>, 
+            AddStsToVehicleDocumentsHandler>();
+        services.AddTransient<IRequestHandler<AddVehicleDocumentsCommand, Result>, AddVehicleDocumentsHandler>();
+        
+
+        // Queries
+        var serviceProvider = services.BuildServiceProvider();
+        services.AddTransient<IRequestHandler<GetVehicleDocumentsByVehicleIdQuery,Result<GetVehicleDocumentsByVehicleIdQueryResponse>>, GetVehicleDocumentsByVehicleIdQueryHandler>();
+        services
+            .AddTransient<IRequestHandler<GetStsByVehicleDocumentsIdQuery,
+                Result<GetStsByVehicleDocumentsIdQueryResponse>>>(_ =>
+                new GetStsByVehicleDocumentsIdQueryHandler(serviceProvider.GetRequiredService<NpgsqlDataSource>(),
+                    Configuration.AwsServiceUrl));
+        services.AddTransient<IRequestHandler<GetPtsByVehicleDocumentsIdQuery,
+            Result<GetPtsByVehicleDocumentsIdQueryResponse>>>(_ =>
+            new GetPtsByVehicleDocumentsIdQueryHandler(serviceProvider.GetRequiredService<NpgsqlDataSource>(),
+                Configuration.AwsServiceUrl));
+        services.AddTransient<IRequestHandler<GetOsagoByVehicleDocumentsIdQuery,
+            Result<GetOsagoByVehicleDocumentsIdQueryResponse>>>(_ =>
+            new GetOsagoByVehicleDocumentsIdQueryHandler(serviceProvider.GetRequiredService<NpgsqlDataSource>(),
+                Configuration.AwsServiceUrl));
+
+        // Domain event handlers
+        services.AddTransient<INotificationHandler<OsagoAddedDomainEvent>, OsagoAddedHandler>();
+        services.AddTransient<INotificationHandler<OsagoExpiredDomainEvent>, OsagoExpiredHandler>();
+        services
+            .AddTransient<INotificationHandler<DocumentAddingCompletedDomainEvent>, DocumentAddingCompletedHandler>();
 
         return services;
     }
@@ -57,8 +179,7 @@ public static class ServiceCollectionExtensions
     {
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console(theme: AnsiConsoleTheme.Sixteen)
-            .WriteTo.MongoDBBson(Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING")
-                                 ?? "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin",
+            .WriteTo.MongoDBBson(Configuration.MongoConnectionString,
                 "logs",
                 LogEventLevel.Verbose,
                 50,
@@ -71,97 +192,72 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection RegisterRepositories(this IServiceCollection services)
     {
-        // services.AddTransient<IModelRepository, ModelRepository>();
-        // services.AddTransient<IVehicleRepository, VehicleRepository>();
+        services.AddTransient<IOsagoRepository, OsagoRepository>();
+        services.AddTransient<IVehicleDocumentsRepository, VehicleDocumentsRepository>();
 
         return services;
     }
 
     public static IServiceCollection RegisterUnitOfWork(this IServiceCollection services)
     {
-        // services.AddTransient<IUnitOfWork, UnitOfWork>();
+        services.AddTransient<IUnitOfWork, UnitOfWork>();
 
         return services;
     }
 
-    public static IServiceCollection RegisterMappers(this IServiceCollection services)
+    public static IServiceCollection RegisterEnumMappers(this IServiceCollection services)
     {
-        // services.AddScoped<ColorMapper>();
-        // services.AddScoped<StatusMapper>();
+        services.AddScoped<ColorMapper>();
+        services.AddScoped<ExpiryStatusMapper>();
 
         return services;
     }
 
     public static IServiceCollection RegisterMassTransit(this IServiceCollection services)
     {
-        // const string modelCreatedTopic = "model-created-topic";
-        // const string modelCategoryUpdatedTopic = "model-category-updated-topic";
-        // const string modelTariffUpdatedTopic = "model-tariff-updated-topic";
-        // const string vehicleAddedTopic = "vehicle-added-topic";
-        // const string vehicleDeletedTopic = "vehicle-deleted-topic";
-        // const string vehicleOccupiedTopic = "vehicle-occupied-topic";
-        // const string vehicleReadiedForReleasesTopic = "vehicle-readied-for-releases-topic";
-        // const string vehicleReleasedTopic = "vehicle-released-topic";
-        // const string vehicleServicedTopic = "vehicle-serviced-topic";
-        //
-        // services.Configure<KafkaTopicsConfiguration>(config =>
-        // {
-        //     config.ModelCreatedTopic = modelCreatedTopic;
-        //     config.ModelCategoryUpdatedTopic = modelCategoryUpdatedTopic;
-        //     config.ModelTariffUpdatedTopic = modelTariffUpdatedTopic;
-        //     config.VehicleAddedTopic = vehicleAddedTopic;
-        //     config.VehicleDeletedTopic = vehicleDeletedTopic;
-        //     config.VehicleOccupiedTopic = vehicleOccupiedTopic;
-        //     config.VehicleReadiedForReleaseTopic = vehicleReadiedForReleasesTopic;
-        //     config.VehicleReleasedTopic = vehicleReleasedTopic;
-        //     config.VehicleServicedTopic = vehicleServicedTopic;
-        // });
-        //
-        // services.AddTransient<IMessageBus, KafkaProducer>();
-        //
-        // services.AddMassTransit(x =>
-        // {
-        //     x.UsingInMemory();
-        //
-        //     x.AddRider(rider =>
-        //     {
-        //         rider.AddProducer<string, ModelCreated>(modelCreatedTopic);
-        //         rider.AddProducer<string, ModelCategoryUpdated>(modelCategoryUpdatedTopic);
-        //         rider.AddProducer<string, ModelTariffUpdated>(modelTariffUpdatedTopic);
-        //         
-        //         rider.AddProducer<string, VehicleAdded>(vehicleAddedTopic);
-        //         rider.AddProducer<string, VehicleDeleted>(vehicleDeletedTopic);
-        //         rider.AddProducer<string, VehicleOccupied>(vehicleOccupiedTopic);
-        //         rider.AddProducer<string, VehicleReadiedForRelease>(vehicleReadiedForReleasesTopic);
-        //         rider.AddProducer<string, VehicleReleased>(vehicleReleasedTopic);
-        //         rider.AddProducer<string, VehicleServiced>(vehicleServicedTopic);
-        //         
-        //         rider.UsingKafka((_, k) =>
-        //             k.Host((Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS") ?? "localhost:9092").Split("__")));
-        //     });
-        // });
+        services.Configure<KafkaTopicsConfiguration>(config =>
+        {
+            config.OsagoExpiredTopic = Configuration.OsagoExpiredTopic;
+            config.DocumentAddingCompletedTopic = Configuration.DocumentAddingCompletedTopic;
+        });
+        
+        services.AddTransient<IMessageBus, KafkaProducer>();
+        
+        services.AddMassTransit(x =>
+        {
+            x.UsingInMemory();
+        
+            x.AddRider(rider =>
+            {
+                rider.AddProducer<string, OsagoExpired>(Configuration.OsagoExpiredTopic);
+                rider.AddProducer<string, DocumentAddingCompleted>(Configuration.DocumentAddingCompletedTopic);
+                
+                rider.UsingKafka((_, k) =>
+                    k.Host(Configuration.BootstrapServers));
+            });
+        });
 
         return services;
     }
 
     public static IServiceCollection RegisterInboxAndOutboxBackgroundJobs(this IServiceCollection services)
     {
-        // services.AddQuartz(configure =>
-        // {
-        //     var outboxJobKey = new JobKey(nameof(OutboxBackgroundJob));
-        //     configure
-        //         .AddJob<OutboxBackgroundJob>(j => j.WithIdentity(outboxJobKey))
-        //         .AddTrigger(trigger => trigger.ForJob(outboxJobKey)
-        //             .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
-        //
-        //     //     var actualityObserverJobKey = new JobKey(nameof(ActualityObserverBackgroundJob));
-        //     //     configure
-        //     //         .AddJob<ActualityObserverBackgroundJob>(j => j.WithIdentity(actualityObserverJobKey))
-        //     //         .AddTrigger(trigger => trigger.ForJob(actualityObserverJobKey)
-        //     //             .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
-        // });
-        //
-        // services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
+        services.AddQuartz(configure =>
+        {
+            var outboxJobKey = new JobKey(nameof(OutboxBackgroundJob));
+            configure
+                .AddJob<OutboxBackgroundJob>(j => j.WithIdentity(outboxJobKey))
+                .AddTrigger(trigger => trigger.ForJob(outboxJobKey)
+                    .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
+        
+            //     var actualityObserverJobKey = new JobKey(nameof(ActualityObserverBackgroundJob));
+            //     configure
+            //         .AddJob<ActualityObserverBackgroundJob>(j => j.WithIdentity(actualityObserverJobKey))
+            //         .AddTrigger(trigger => trigger.ForJob(actualityObserverJobKey)
+            //             .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
+        });
+        
+        services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
         return services;
     }
@@ -207,12 +303,12 @@ public static class ServiceCollectionExtensions
         {
             var connectionBuilder = new NpgsqlConnectionStringBuilder
             {
-                ApplicationName = "Vehicle_documents#" + Environment.MachineName,
-                Host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost",
-                Port = int.Parse(Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5450"),
-                Database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "vehicledocuments_db",
-                Username = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres",
-                Password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password",
+                ApplicationName = Configuration.ApplicationName,
+                Host = Configuration.PostgresHost,
+                Port = Configuration.PostgresPort,
+                Database = Configuration.PostgresDatabase,
+                Username = Configuration.PostgresUsername,
+                Password = Configuration.PostgresPassword,
                 BrowsableConnectionString = false
             };
 
@@ -222,10 +318,66 @@ public static class ServiceCollectionExtensions
         services.AddGrpcHealthChecks()
             .AddNpgSql(getConnectionString(), timeout: TimeSpan.FromSeconds(10))
             .AddKafka(cfg =>
-                    cfg.BootstrapServers = (Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS")
-                                            ?? "localhost:9092").Split("__")[0],
+                    cfg.BootstrapServers = Configuration.BootstrapServers[0],
                 timeout: TimeSpan.FromSeconds(10));
 
         return services;
     }
+
+    public static IServiceCollection RegisterS3Storage(this IServiceCollection services)
+    {
+        services.AddTransient<IAmazonS3>(_ =>
+            new AmazonS3Client(
+                Configuration.AwsAccessKeyId,
+                Configuration.AwsSecretAccessKey,
+                new AmazonS3Config
+                {
+                    ForcePathStyle = true,
+                    ServiceURL = Configuration.AwsServiceUrl,
+                    AuthenticationRegion = "ru-central1",
+                    RetryMode = RequestRetryMode.Standard
+                }));
+        services.AddTransient<IS3Storage, S3Storage>();
+
+        services.Configure<S3Options>(options =>
+        {
+            options.StsBuckets = Configuration.AwsStsBuckets;
+            options.PtsBuckets = Configuration.AwsPtsBuckets;
+            options.OsagoBuckets = Configuration.AwsOsagoBuckets;
+        });
+
+        return services;
+    }
+}
+
+internal class Configuration
+{
+    public required string ApplicationName { get; init; }
+
+
+    // Postgres
+    public required string PostgresHost { get; init; }
+    public required int PostgresPort { get; init; }
+    public required string PostgresDatabase { get; init; }
+    public required string PostgresUsername { get; init; }
+    public required string PostgresPassword { get; init; }
+
+
+    // YandexS3
+    public required string AwsAccessKeyId { get; init; }
+    public required string AwsSecretAccessKey { get; init; }
+    public required string AwsServiceUrl { get; init; }
+    public required string[] AwsStsBuckets { get; init; }
+    public required string[] AwsPtsBuckets { get; init; }
+    public required string[] AwsOsagoBuckets { get; init; }
+
+
+    // Kafka
+    public required string[] BootstrapServers { get; init; }
+    public required string OsagoExpiredTopic { get; init; }
+    public required string DocumentAddingCompletedTopic { get; init; }
+
+
+    // Mongo
+    public required string MongoConnectionString { get; init; }
 }

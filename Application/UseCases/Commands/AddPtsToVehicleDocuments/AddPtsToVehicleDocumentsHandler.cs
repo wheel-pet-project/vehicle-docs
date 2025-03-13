@@ -30,7 +30,8 @@ public class AddPtsToVehicleDocumentsHandler(
 
         var vin = Vin.Create(command.Vin);
 
-        var uploadingToS3Result = await s3Storage.SavePhotos(command.FrontPhotoBytes, command.BackPhotoBytes);
+        var uploadingToS3Result =
+            await s3Storage.SavePhotos(command.FrontPhotoBytes, command.BackPhotoBytes, DocumentType.Pts);
         if (uploadingToS3Result.IsFailed) return Result.Fail(uploadingToS3Result.Errors);
         var (frontPhotoBucketAndKey, backPhotoBucketAndKey) = uploadingToS3Result.Value;
 

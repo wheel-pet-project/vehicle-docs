@@ -30,7 +30,7 @@ public class AddStsToVehicleDocumentsHandlerShould
     {
         _vehicleDocumentsRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(_vehicleDocuments);
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
-        _s3StorageMock.Setup(x => x.SavePhotos(It.IsAny<List<byte>>(), It.IsAny<List<byte>>()))
+        _s3StorageMock.Setup(x => x.SavePhotos(It.IsAny<List<byte>>(), It.IsAny<List<byte>>(), It.IsAny<DocumentType>()))
             .ReturnsAsync(Result.Ok(("frontKey", "backKey")));
         _imageFormatValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(true);
         _imageSizeValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(true);
@@ -95,7 +95,7 @@ public class AddStsToVehicleDocumentsHandlerShould
     public async Task ReturnFailIfUploadToS3Failed()
     {
         // Arrange
-        _s3StorageMock.Setup(x => x.SavePhotos(It.IsAny<List<byte>>(), It.IsAny<List<byte>>()))
+        _s3StorageMock.Setup(x => x.SavePhotos(It.IsAny<List<byte>>(), It.IsAny<List<byte>>(), It.IsAny<DocumentType>()))
             .ReturnsAsync(Result.Fail("error"));
 
         // Act

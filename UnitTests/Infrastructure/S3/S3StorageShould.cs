@@ -23,7 +23,7 @@ public class S3StorageShould
         var storage = storageBuilder.Build();
 
         // Act
-        var actual = await storage.SavePhotos(_frontPhotoBytes, _backPhotoBytes);
+        var actual = await storage.SavePhotos(_frontPhotoBytes, _backPhotoBytes, DocumentType.Sts);
 
         // Assert
         Assert.True(actual.IsSuccess);
@@ -37,7 +37,7 @@ public class S3StorageShould
         var storage = storageBuilder.Build();
 
         // Act
-        var actual = await storage.SavePhoto(_frontPhotoBytes);
+        var actual = await storage.SavePhoto(_frontPhotoBytes, DocumentType.Sts);
 
         // Assert
         Assert.True(actual.IsSuccess);
@@ -47,11 +47,11 @@ public class S3StorageShould
     {
         private readonly Mock<IAmazonS3> _s3Mock = new();
         private readonly Mock<Microsoft.Extensions.Logging.ILogger<S3Storage>> _loggerMock = new();
-        private IOptions<S3Options> _s3Options = Options.Create(new S3Options { Buckets = ["test_bucket"] });
+        private IOptions<S3Options> _s3Options = Options.Create(new S3Options { StsBuckets = ["test_bucket"] });
 
         public IS3Storage Build(string? bucketName = null)
         {
-            _s3Options = Options.Create(new S3Options { Buckets = [bucketName ?? "test_bucket"] });
+            _s3Options = Options.Create(new S3Options { StsBuckets = [bucketName ?? "test_bucket"] });
             return new S3Storage(_s3Mock.Object, _s3Options, _loggerMock.Object);
         }
     }

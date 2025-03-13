@@ -28,7 +28,8 @@ public class AddStsToVehicleDocumentsHandler(
             sizeValidator.IsSupportedSize(command.BackPhotoBytes.Count) is false)
             return Result.Fail("Image size is too large");
 
-        var uploadingToS3Result = await s3Storage.SavePhotos(command.FrontPhotoBytes, command.BackPhotoBytes);
+        var uploadingToS3Result =
+            await s3Storage.SavePhotos(command.FrontPhotoBytes, command.BackPhotoBytes, DocumentType.Sts);
         if (uploadingToS3Result.IsFailed) return Result.Fail(uploadingToS3Result.Errors);
         var (frontPhotoBucketAndKey, backPhotoBucketAndKey) = uploadingToS3Result.Value;
 

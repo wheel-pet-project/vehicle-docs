@@ -30,7 +30,8 @@ public class AddOsagoHandlerShould
     {
         _vehicleDocumentsRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(_vehicleDocuments);
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
-        _s3StorageMock.Setup(x => x.SavePhoto(It.IsAny<List<byte>>())).ReturnsAsync(Result.Ok("photoKey"));
+        _s3StorageMock.Setup(x => x.SavePhoto(It.IsAny<List<byte>>(), It.IsAny<DocumentType>()))
+            .ReturnsAsync(Result.Ok("photoKey"));
         _imageFormatValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(true);
         _imageSizeValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(true);
 
@@ -95,7 +96,8 @@ public class AddOsagoHandlerShould
     public async Task ReturnFailIfUploadToS3Failed()
     {
         // Arrange
-        _s3StorageMock.Setup(x => x.SavePhoto(It.IsAny<List<byte>>())).ReturnsAsync(Result.Fail("error"));
+        _s3StorageMock.Setup(x => x.SavePhoto(It.IsAny<List<byte>>(), It.IsAny<DocumentType>()))
+            .ReturnsAsync(Result.Fail("error"));
 
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);
