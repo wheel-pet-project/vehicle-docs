@@ -208,7 +208,10 @@ public class VehicleDocumentsShould
         vehicleDocuments.MarkAsOsagoAdded();
 
         // Act
-        void Act() => vehicleDocuments.MarkAsOsagoAdded();
+        void Act()
+        {
+            vehicleDocuments.MarkAsOsagoAdded();
+        }
 
         // Assert
         Assert.Throws<AlreadyHaveThisStateException>(Act);

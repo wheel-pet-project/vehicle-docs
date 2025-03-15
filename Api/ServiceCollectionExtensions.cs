@@ -48,7 +48,7 @@ namespace Api;
 public static class ServiceCollectionExtensions
 {
     private static readonly Configuration Configuration;
-    
+
     static ServiceCollectionExtensions()
     {
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -64,14 +64,14 @@ public static class ServiceCollectionExtensions
                 PostgresUsername = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres",
                 PostgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password",
                 AwsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") ?? "aws_access_key_id",
-                AwsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") 
+                AwsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY")
                                      ?? "aws_secret_access_key",
                 AwsServiceUrl = Environment.GetEnvironmentVariable("AWS_S3_SERVICE_URL") ?? "aws_service_url",
                 AwsStsBuckets = (Environment.GetEnvironmentVariable("AWS_STS_BUCKETS") ?? "default_bucket").Split("__"),
                 AwsPtsBuckets = (Environment.GetEnvironmentVariable("AWS_PTS_BUCKETS") ?? "default_bucket").Split("__"),
                 AwsOsagoBuckets = (Environment.GetEnvironmentVariable("AWS_OSAGO_BUCKETS") ??
                                    "default_bucket").Split("__"),
-                BootstrapServers = (Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS") ?? 
+                BootstrapServers = (Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS") ??
                                     "localhost:9092").Split("__"),
                 OsagoExpiredTopic = Environment.GetEnvironmentVariable("OSAGO_EXPIRED_TOPIC") ?? "osago_expired_topic",
                 DocumentAddingCompletedTopic = Environment.GetEnvironmentVariable("DOCUMENTS_ADDING_COMPLETED_TOPIC") ??
@@ -85,7 +85,7 @@ public static class ServiceCollectionExtensions
                 ApplicationName = "Vehicle_documents#" + Environment.MachineName,
                 PostgresHost = GetEnvironmentOrThrow("POSTGRES_HOST"),
                 PostgresPort = int.Parse(GetEnvironmentOrThrow("POSTGRES_PORT")),
-                PostgresDatabase =GetEnvironmentOrThrow("POSTGRES_DB"),
+                PostgresDatabase = GetEnvironmentOrThrow("POSTGRES_DB"),
                 PostgresUsername = GetEnvironmentOrThrow("POSTGRES_USER"),
                 PostgresPassword = GetEnvironmentOrThrow("POSTGRES_PASSWORD"),
                 AwsAccessKeyId = GetEnvironmentOrThrow("AWS_ACCESS_KEY_ID"),
@@ -102,13 +102,13 @@ public static class ServiceCollectionExtensions
             },
             _ => throw new ArgumentException("Unknown environment")
         };
-        
+
         return;
 
         string GetEnvironmentOrThrow(string environmentName)
         {
             return Environment.GetEnvironmentVariable(environmentName) ??
-                throw new ArgumentNullException(environmentName, "not exist in environment variables");
+                   throw new ArgumentNullException(environmentName, "not exist in environment variables");
         }
     }
 
@@ -152,16 +152,19 @@ public static class ServiceCollectionExtensions
 
         // Commands
         services.AddTransient<IRequestHandler<AddOsagoCommand, Result>, AddOsagoHandler>();
-        services.AddTransient<IRequestHandler<AddPtsToVehicleDocumentsCommand, Result>, 
+        services.AddTransient<IRequestHandler<AddPtsToVehicleDocumentsCommand, Result>,
             AddPtsToVehicleDocumentsHandler>();
-        services.AddTransient<IRequestHandler<AddStsToVehicleDocumentsCommand, Result>, 
+        services.AddTransient<IRequestHandler<AddStsToVehicleDocumentsCommand, Result>,
             AddStsToVehicleDocumentsHandler>();
         services.AddTransient<IRequestHandler<AddVehicleDocumentsCommand, Result>, AddVehicleDocumentsHandler>();
-        
+
 
         // Queries
         var serviceProvider = services.BuildServiceProvider();
-        services.AddTransient<IRequestHandler<GetVehicleDocumentsByVehicleIdQuery,Result<GetVehicleDocumentsByVehicleIdQueryResponse>>, GetVehicleDocumentsByVehicleIdQueryHandler>();
+        services
+            .AddTransient<
+                IRequestHandler<GetVehicleDocumentsByVehicleIdQuery,
+                    Result<GetVehicleDocumentsByVehicleIdQueryResponse>>, GetVehicleDocumentsByVehicleIdQueryHandler>();
         services
             .AddTransient<IRequestHandler<GetStsByVehicleDocumentsIdQuery,
                 Result<GetStsByVehicleDocumentsIdQueryResponse>>>(_ =>
@@ -237,20 +240,20 @@ public static class ServiceCollectionExtensions
             config.OsagoExpiredTopic = Configuration.OsagoExpiredTopic;
             config.DocumentAddingCompletedTopic = Configuration.DocumentAddingCompletedTopic;
         });
-        
+
         services.AddTransient<IMessageBus, KafkaProducer>();
-        
+
         services.AddMassTransit(x =>
         {
             x.UsingInMemory();
-        
+
             x.AddRider(rider =>
             {
                 rider.AddConsumer<VehicleAddedConsumer>();
-                
+
                 rider.AddProducer<string, OsagoExpired>(Configuration.OsagoExpiredTopic);
                 rider.AddProducer<string, DocumentAddingCompleted>(Configuration.DocumentAddingCompletedTopic);
-                
+
                 rider.UsingKafka((context, k) =>
                 {
                     k.TopicEndpoint<VehicleAdded>(Configuration.VehicleAddedTopic,
@@ -269,7 +272,7 @@ public static class ServiceCollectionExtensions
                             e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
                             e.ConfigureConsumer<VehicleAddedConsumer>(context);
                         });
-                    
+
                     k.Host(Configuration.BootstrapServers);
                 });
             });
@@ -287,7 +290,7 @@ public static class ServiceCollectionExtensions
                 .AddJob<OutboxBackgroundJob>(j => j.WithIdentity(outboxJobKey))
                 .AddTrigger(trigger => trigger.ForJob(outboxJobKey)
                     .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
-        
+
             var inboxJobKey = new JobKey(nameof(InboxBackgroundJob));
             configure
                 .AddJob<InboxBackgroundJob>(j => j.WithIdentity(inboxJobKey))
@@ -300,7 +303,7 @@ public static class ServiceCollectionExtensions
             //     .AddTrigger(trigger => trigger.ForJob(osagoActualityObserverJobKey)
             //         .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInMinutes(30).RepeatForever()));
         });
-        
+
         services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
         return services;
@@ -392,7 +395,7 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     public static IServiceCollection RegisterImageValidators(this IServiceCollection services)
     {
         services.AddTransient<IImageFormatValidator, ImageFormatValidator>();

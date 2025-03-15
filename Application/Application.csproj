@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="UseCases\Commands\ExpireOsago\" />
+        <Folder Include="UseCases\Commands\ExpireOsago\"/>
     </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@ namespace Infrastructure.Adapters.Postgres.Inbox;
 public class Inbox(DataContext context) : IInbox
 {
     private const int DuplicateKeyCode = 23505; // duplicate key value violates unique constraint code
-    
+
     private readonly JsonSerializerSettings _jsonSettings = new() { TypeNameHandling = TypeNameHandling.All };
 
     public async Task<bool> Save(IInputConsumerEvent inputConsumerEvent)

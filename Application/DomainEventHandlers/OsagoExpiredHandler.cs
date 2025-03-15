@@ -18,14 +18,14 @@ public class OsagoExpiredHandler(
         if (osago == null)
             throw new DataConsistencyViolationException(
                 $"{nameof(OsagoExpiredDomainEvent)} created for not exist osago");
-        
+
         osago.Expire(timeProvider);
-        
+
         osagoRepository.Update(osago);
-        
+
         var commitResult = await unitOfWork.Commit();
         if (commitResult.IsFailed) throw new TaskCanceledException("Could not commit updates");
-        
+
         await messageBus.Publish(domainEvent, cancellationToken);
     }
 }

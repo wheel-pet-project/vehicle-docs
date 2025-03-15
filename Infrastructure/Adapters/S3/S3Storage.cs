@@ -125,7 +125,7 @@ public class S3Storage(
             DocumentType.Osago => _s3Options.OsagoBuckets[rnd.Next(_s3Options.OsagoBuckets.Length)],
             _ => throw new ValueOutOfRangeException($"{nameof(documentType)} is unknown")
         };
-        
+
         return currentBucket;
     }
 }

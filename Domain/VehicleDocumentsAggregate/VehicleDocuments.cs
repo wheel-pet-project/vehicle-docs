@@ -48,7 +48,7 @@ public sealed class VehicleDocuments : Aggregate
     public void MarkAsOsagoAdded()
     {
         if (Status.IsOsagoAdded) throw new AlreadyHaveThisStateException("Osago already added for this vehicle");
-        
+
         Status.MarkAsOsagoAdded();
         if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
     }

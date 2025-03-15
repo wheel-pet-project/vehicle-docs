@@ -153,7 +153,7 @@ internal class InboxEventTypeConfiguration : IEntityTypeConfiguration<InboxEvent
         builder.ToTable("inbox");
 
         builder.HasKey(x => x.EventId);
-        
+
         builder.HasIndex(x => new { x.OccurredOnUtc, x.ProcessedOnUtc }, "IX_inbox_messages_unprocessed")
             .IncludeProperties(x => new { x.EventId, x.Type })
             .IsDescending(false, false)

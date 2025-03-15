@@ -34,7 +34,7 @@ public class IntegrationTestBase : IAsyncLifetime
         await Context.Database.MigrateAsync();
 
         DataSource = new NpgsqlDataSourceBuilder(_postgreSqlContainer.GetConnectionString()).Build();
-        
+
         SqlMapper.AddTypeHandler(new DateOnlyMapper());
     }
 

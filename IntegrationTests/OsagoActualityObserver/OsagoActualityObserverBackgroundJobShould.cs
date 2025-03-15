@@ -47,14 +47,14 @@ public class OsagoActualityObserverBackgroundJobShould : IntegrationTestBase
         // Assert
         jobBuilder.VerifyMediatorCalls(0);
     }
-    
-    async Task AddExpiredOsago()
+
+    private async Task AddExpiredOsago()
     {
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
 
         await Context.VehicleDocuments.AddAsync(vehicleDocuments);
         await Context.SaveChangesAsync();
-        
+
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(DateTimeOffset.UtcNow.AddDays(-1));
 
@@ -65,7 +65,7 @@ public class OsagoActualityObserverBackgroundJobShould : IntegrationTestBase
         Context.Osagos.Add(osago);
         await Context.SaveChangesAsync();
     }
-    
+
     private class JobBuilder
     {
         private readonly Mock<IMediator> _mediatorMock = new();
