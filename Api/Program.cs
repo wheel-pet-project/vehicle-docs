@@ -26,14 +26,17 @@ public class Program
             .RegisterSerilog()
             .RegisterRepositories()
             .RegisterUnitOfWork()
+            .RegisterInbox()
             .RegisterEnumMappers()
             .RegisterMassTransit()
             .RegisterTelemetry()
-            .RegisterHealthCheckV1();
+            .RegisterHealthCheckV1()
+            .RegisterImageValidators();
 
         var app = builder.Build();
 
         app.MapGrpcService<VehicleDocumentsV1>();
+        app.MapGrpcHealthChecksService();
 
         RegisterDapperMapping();
 

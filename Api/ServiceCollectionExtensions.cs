@@ -2,7 +2,9 @@ using System.Reflection;
 using Amazon.Runtime;
 using Amazon.S3;
 using Api.Adapters.Grpc.EnumMappers;
+using Api.Adapters.Kafka;
 using Application.DomainEventHandlers;
+using Application.Ports.ImageValidators;
 using Application.Ports.Kafka;
 using Application.Ports.Postgres;
 using Application.Ports.S3;
@@ -14,12 +16,17 @@ using Application.UseCases.Queries.GetOsagoByVehicleDocumentsId;
 using Application.UseCases.Queries.GetPtsByVehicleDocumentsId;
 using Application.UseCases.Queries.GetStsByVehicleDocumentsId;
 using Application.UseCases.Queries.GetVehicleDocumentsByVehicleId;
+using Confluent.Kafka;
 using Domain.OsagoAggregate.DomainEvents;
 using Domain.VehicleDocumentsAggregate.DomainEvents;
 using FluentResults;
 using From.VehicleDocumentsKafkaEvents;
+using From.VehicleFleetKafkaEvents.Vehicle;
+using Infrastructure.Adapters.ImageValidators;
 using Infrastructure.Adapters.Kafka;
 using Infrastructure.Adapters.Postgres;
+using Infrastructure.Adapters.Postgres.Inbox;
+using Infrastructure.Adapters.Postgres.OsagoActualityObserver;
 using Infrastructure.Adapters.Postgres.Outbox;
 using Infrastructure.Adapters.Postgres.Repositories;
 using Infrastructure.Adapters.S3;
@@ -57,7 +64,8 @@ public static class ServiceCollectionExtensions
                 PostgresUsername = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres",
                 PostgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password",
                 AwsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") ?? "aws_access_key_id",
-                AwsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY") ?? "aws_secret_access_key",
+                AwsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") 
+                                     ?? "aws_secret_access_key",
                 AwsServiceUrl = Environment.GetEnvironmentVariable("AWS_S3_SERVICE_URL") ?? "aws_service_url",
                 AwsStsBuckets = (Environment.GetEnvironmentVariable("AWS_STS_BUCKETS") ?? "default_bucket").Split("__"),
                 AwsPtsBuckets = (Environment.GetEnvironmentVariable("AWS_PTS_BUCKETS") ?? "default_bucket").Split("__"),
@@ -68,6 +76,7 @@ public static class ServiceCollectionExtensions
                 OsagoExpiredTopic = Environment.GetEnvironmentVariable("OSAGO_EXPIRED_TOPIC") ?? "osago_expired_topic",
                 DocumentAddingCompletedTopic = Environment.GetEnvironmentVariable("DOCUMENTS_ADDING_COMPLETED_TOPIC") ??
                                                "documents_adding_completed_topic",
+                VehicleAddedTopic = Environment.GetEnvironmentVariable("VEHICLE_ADDED_TOPIC") ?? "vehicle-added-topic",
                 MongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ??
                                         "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin"
             },
@@ -80,7 +89,7 @@ public static class ServiceCollectionExtensions
                 PostgresUsername = GetEnvironmentOrThrow("POSTGRES_USER"),
                 PostgresPassword = GetEnvironmentOrThrow("POSTGRES_PASSWORD"),
                 AwsAccessKeyId = GetEnvironmentOrThrow("AWS_ACCESS_KEY_ID"),
-                AwsSecretAccessKey = GetEnvironmentOrThrow("AWS_ACCESS_KEY"),
+                AwsSecretAccessKey = GetEnvironmentOrThrow("AWS_SECRET_ACCESS_KEY"),
                 AwsServiceUrl = GetEnvironmentOrThrow("AWS_S3_SERVICE_URL"),
                 AwsStsBuckets = GetEnvironmentOrThrow("AWS_STS_BUCKETS").Split("__"),
                 AwsPtsBuckets = GetEnvironmentOrThrow("AWS_PTS_BUCKETS").Split("__"),
@@ -88,6 +97,7 @@ public static class ServiceCollectionExtensions
                 BootstrapServers = GetEnvironmentOrThrow("BOOTSTRAP_SERVERS").Split("__"),
                 OsagoExpiredTopic = GetEnvironmentOrThrow("OSAGO_EXPIRED_TOPIC"),
                 DocumentAddingCompletedTopic = GetEnvironmentOrThrow("DOCUMENTS_ADDING_COMPLETED_TOPIC"),
+                VehicleAddedTopic = GetEnvironmentOrThrow("VEHICLE_ADDED_TOPIC"),
                 MongoConnectionString = GetEnvironmentOrThrow("MONGO_CONNECTION_STRING")
             },
             _ => throw new ArgumentException("Unknown environment")
@@ -205,6 +215,13 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection RegisterInbox(this IServiceCollection services)
+    {
+        services.AddTransient<IInbox, Inbox>();
+
+        return services;
+    }
+
     public static IServiceCollection RegisterEnumMappers(this IServiceCollection services)
     {
         services.AddScoped<ColorMapper>();
@@ -229,11 +246,32 @@ public static class ServiceCollectionExtensions
         
             x.AddRider(rider =>
             {
+                rider.AddConsumer<VehicleAddedConsumer>();
+                
                 rider.AddProducer<string, OsagoExpired>(Configuration.OsagoExpiredTopic);
                 rider.AddProducer<string, DocumentAddingCompleted>(Configuration.DocumentAddingCompletedTopic);
                 
-                rider.UsingKafka((_, k) =>
-                    k.Host(Configuration.BootstrapServers));
+                rider.UsingKafka((context, k) =>
+                {
+                    k.TopicEndpoint<VehicleAdded>(Configuration.VehicleAddedTopic,
+                        "vehicledocuments-consumer-group",
+                        e =>
+                        {
+                            e.EnableAutoOffsetStore = false;
+                            e.EnablePartitionEof = true;
+                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            e.CreateIfMissing();
+                            e.UseKillSwitch(cfg =>
+                                cfg.SetActivationThreshold(1)
+                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
+                                    .SetTripThreshold(0.05)
+                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
+                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
+                            e.ConfigureConsumer<VehicleAddedConsumer>(context);
+                        });
+                    
+                    k.Host(Configuration.BootstrapServers);
+                });
             });
         });
 
@@ -250,11 +288,17 @@ public static class ServiceCollectionExtensions
                 .AddTrigger(trigger => trigger.ForJob(outboxJobKey)
                     .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
         
-            //     var actualityObserverJobKey = new JobKey(nameof(ActualityObserverBackgroundJob));
-            //     configure
-            //         .AddJob<ActualityObserverBackgroundJob>(j => j.WithIdentity(actualityObserverJobKey))
-            //         .AddTrigger(trigger => trigger.ForJob(actualityObserverJobKey)
-            //             .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
+            var inboxJobKey = new JobKey(nameof(InboxBackgroundJob));
+            configure
+                .AddJob<InboxBackgroundJob>(j => j.WithIdentity(inboxJobKey))
+                .AddTrigger(trigger => trigger.ForJob(inboxJobKey)
+                    .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
+
+            // var osagoActualityObserverJobKey = new JobKey(nameof(OsagoActualityObserverBackgroundJob));
+            // configure
+            //     .AddJob<OsagoActualityObserverBackgroundJob>(j => j.WithIdentity(osagoActualityObserverJobKey))
+            //     .AddTrigger(trigger => trigger.ForJob(osagoActualityObserverJobKey)
+            //         .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInMinutes(30).RepeatForever()));
         });
         
         services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
@@ -348,6 +392,14 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+    
+    public static IServiceCollection RegisterImageValidators(this IServiceCollection services)
+    {
+        services.AddTransient<IImageFormatValidator, ImageFormatValidator>();
+        services.AddTransient<IImageSizeValidator, ImageSizeValidator>();
+
+        return services;
+    }
 }
 
 internal class Configuration
@@ -376,6 +428,7 @@ internal class Configuration
     public required string[] BootstrapServers { get; init; }
     public required string OsagoExpiredTopic { get; init; }
     public required string DocumentAddingCompletedTopic { get; init; }
+    public required string VehicleAddedTopic { get; init; }
 
 
     // Mongo

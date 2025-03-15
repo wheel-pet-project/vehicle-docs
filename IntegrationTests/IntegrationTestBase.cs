@@ -1,3 +1,5 @@
+using Application.UseCases.Queries.DapperMappingExtensions;
+using Dapper;
 using Infrastructure.Adapters.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -32,6 +34,8 @@ public class IntegrationTestBase : IAsyncLifetime
         await Context.Database.MigrateAsync();
 
         DataSource = new NpgsqlDataSourceBuilder(_postgreSqlContainer.GetConnectionString()).Build();
+        
+        SqlMapper.AddTypeHandler(new DateOnlyMapper());
     }
 
     public async ValueTask DisposeAsync()

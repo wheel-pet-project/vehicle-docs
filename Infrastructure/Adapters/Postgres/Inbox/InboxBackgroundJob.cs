@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Dapper;
+using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
 using Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;
 using JsonNet.ContractResolvers;
 using MediatR;
@@ -76,6 +77,10 @@ public class InboxBackgroundJob(
                 var processingResult = await mediator.Send(@event.ToCommand(), cancellationToken);
                 if (processingResult.IsSuccess) updateQueue.Enqueue(@event.EventId);
             }
+            catch (AlreadyHaveThisStateException)
+            {
+                updateQueue.Enqueue(@event.EventId);
+            }
             catch (Exception e)
             {
                 logger.LogError("Fail in processing inbox events, exception: {e}", e);
@@ -86,10 +91,7 @@ public class InboxBackgroundJob(
     private const string QuerySql =
         """
         SELECT event_id AS EventId, 
-               type AS Type, 
-               content AS Content, 
-               occurred_on_utc AS OccurredOnUtc, 
-               processed_on_utc AS ProcessedOnUtc
+               content AS Content
         FROM inbox
         WHERE processed_on_utc IS NULL
         ORDER BY occurred_on_utc

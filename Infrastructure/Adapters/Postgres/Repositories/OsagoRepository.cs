@@ -13,11 +13,11 @@ public class OsagoRepository(DataContext context) : IOsagoRepository
         await context.Osagos.AddAsync(osago);
     }
 
-    public async Task<Osago?> GetById(Guid id)
+    public async Task<Osago?> GetByVehicleDocumentsId(Guid vehicleDocumentsId)
     {
         return await context.Osagos
             .Include(x => x.ExpiryStatus)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.VehicleDocumentsId == vehicleDocumentsId);
     }
 
     public void Update(Osago osago)

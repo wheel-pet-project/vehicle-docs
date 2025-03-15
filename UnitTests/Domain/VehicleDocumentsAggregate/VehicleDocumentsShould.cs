@@ -1,3 +1,4 @@
+using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
 using Domain.SharedKernel.Exceptions.ArgumentException;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleDocumentsAggregate;
@@ -68,12 +69,10 @@ public class VehicleDocumentsShould
     public void AddPtsChangeStatus()
     {
         // Arrange
-        var pts = Pts.Create(new string('*', 10), new string('*', 10), DateOnly.FromDateTime(DateTime.UtcNow),
-            Color.Beige, Vin.Create("SALYA2BN2KA791786"));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
 
         // Act
-        vehicleDocuments.AddPts(pts);
+        vehicleDocuments.AddPts(_pts);
 
         // Assert
         Assert.True(vehicleDocuments.Status.IsPtsAdded);
@@ -83,15 +82,13 @@ public class VehicleDocumentsShould
     public void AddPtsAddDomainEventIfAllDocumentsAreAdded()
     {
         // Arrange
-        var pts = Pts.Create(new string('*', 10), new string('*', 10), DateOnly.FromDateTime(DateTime.UtcNow),
-            Color.Beige, Vin.Create("SALYA2BN2KA791786"));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
         vehicleDocuments.AddSts(_sts);
         vehicleDocuments.MarkAsOsagoAdded();
         vehicleDocuments.ClearDomainEvents();
 
         // Act
-        vehicleDocuments.AddPts(pts);
+        vehicleDocuments.AddPts(_pts);
 
         // Assert
         Assert.NotEmpty(vehicleDocuments.DomainEvents);
@@ -117,26 +114,24 @@ public class VehicleDocumentsShould
     public void AddSts()
     {
         // Arrange
-        var sts = Sts.Create(new string('*', 10), new string('*', 10));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
 
         // Act
-        vehicleDocuments.AddSts(sts);
+        vehicleDocuments.AddSts(_sts);
 
         // Assert
         Assert.NotNull(vehicleDocuments.Sts);
-        Assert.Equal(sts, vehicleDocuments.Sts);
+        Assert.Equal(_sts, vehicleDocuments.Sts);
     }
 
     [Fact]
     public void AddStsChangeStatus()
     {
         // Arrange
-        var sts = Sts.Create(new string('*', 10), new string('*', 10));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
 
         // Act
-        vehicleDocuments.AddSts(sts);
+        vehicleDocuments.AddSts(_sts);
 
         // Assert
         Assert.True(vehicleDocuments.Status.IsStsAdded);
@@ -146,14 +141,13 @@ public class VehicleDocumentsShould
     public void AddStsAddDomainEvent()
     {
         // Arrange
-        var sts = Sts.Create(new string('*', 10), new string('*', 10));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
         vehicleDocuments.AddPts(_pts);
         vehicleDocuments.MarkAsOsagoAdded();
         vehicleDocuments.ClearDomainEvents();
 
         // Act
-        vehicleDocuments.AddSts(sts);
+        vehicleDocuments.AddSts(_sts);
 
         // Assert
         Assert.NotEmpty(vehicleDocuments.DomainEvents);
@@ -179,7 +173,6 @@ public class VehicleDocumentsShould
     public void MarkAsOsagoAddedChangeStatus()
     {
         // Arrange
-        var sts = Sts.Create(new string('*', 10), new string('*', 10));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
 
         // Act
@@ -193,7 +186,6 @@ public class VehicleDocumentsShould
     public void MarkAsOsagoAddedAddDomainEvent()
     {
         // Arrange
-        var sts = Sts.Create(new string('*', 10), new string('*', 10));
         var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
         vehicleDocuments.AddPts(_pts);
         vehicleDocuments.AddSts(_sts);
@@ -204,5 +196,21 @@ public class VehicleDocumentsShould
 
         // Assert
         Assert.NotEmpty(vehicleDocuments.DomainEvents);
+    }
+
+    [Fact]
+    public void MarkAsOsagoAddedThrowAlreadyHaveThisStateExceptionIfOsagoAlreadyAdded()
+    {
+        // Arrange
+        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        vehicleDocuments.AddPts(_pts);
+        vehicleDocuments.AddSts(_sts);
+        vehicleDocuments.MarkAsOsagoAdded();
+
+        // Act
+        void Act() => vehicleDocuments.MarkAsOsagoAdded();
+
+        // Assert
+        Assert.Throws<AlreadyHaveThisStateException>(Act);
     }
 }

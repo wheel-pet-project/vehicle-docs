@@ -6,7 +6,7 @@ public interface IOsagoRepository
 {
     Task Add(Osago osago);
 
-    Task<Osago?> GetById(Guid id);
+    Task<Osago?> GetByVehicleDocumentsId(Guid vehicleDocumentsId);
 
     void Update(Osago osago);
 }

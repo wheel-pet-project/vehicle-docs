@@ -1,4 +1,3 @@
-using Application.UseCases.Commands.AddVehicleDocuments;
 using FluentResults;
 using Infrastructure.Adapters.Postgres.Inbox;
 using Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;

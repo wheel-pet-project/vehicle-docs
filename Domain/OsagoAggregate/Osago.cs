@@ -35,19 +35,12 @@ public sealed class Osago : Aggregate
     public DateOnly DateOfIssue { get; }
     public DateOnly DateOfExpiry { get; }
 
-    public bool IsExpired(TimeProvider timeProvider)
-    {
-        return timeProvider.GetUtcNow().UtcDateTime > DateOfExpiry.ToDateTime(new TimeOnly());
-    }
-
     public void Expire(TimeProvider timeProvider)
     {
         if (timeProvider.GetUtcNow().UtcDateTime < DateOfExpiry.ToDateTime(new TimeOnly()))
             throw new DomainRulesViolationException($"{nameof(DateOfExpiry)} not come yet");
 
         ExpiryStatus = ExpiryStatus.Expired;
-
-        AddDomainEvent(new OsagoExpiredDomainEvent(VehicleDocumentsId));
     }
 
     public static Osago Create(

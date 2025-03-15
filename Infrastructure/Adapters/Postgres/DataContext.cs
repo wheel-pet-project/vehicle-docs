@@ -66,10 +66,10 @@ internal class VehicleDocumentsEntityTypeConfiguration : IEntityTypeConfiguratio
         {
             cfg.Property(x => x.FrontPhotoStorageBucketAndKey)
                 .HasColumnName("sts_front_photo_storage_bucket_and_key")
-                .IsRequired(false);
+                .IsRequired();
             cfg.Property(x => x.BackPhotoStorageBucketAndKey)
                 .HasColumnName("sts_back_photo_storage_bucket_and_key")
-                .IsRequired(false);
+                .IsRequired();
         });
         builder.Navigation(x => x.Sts).IsRequired(false);
 
@@ -98,6 +98,8 @@ internal class OsagoEntityTypeConfiguration : IEntityTypeConfiguration<Osago>
             .HasForeignKey("expiry_status_id")
             .HasConstraintName("FK_expiry_status_id")
             .IsRequired();
+
+        builder.HasIndex(x => x.VehicleDocumentsId);
 
         builder.Property(x => x.VehicleDocumentsId).HasColumnName("vehicle_documents_id").IsRequired();
         builder.Property(x => x.PhotoStorageBucketAndKey).HasColumnName("photo_storage_bucket_and_key").IsRequired();
@@ -131,6 +133,11 @@ internal class OutboxEventTypeConfiguration : IEntityTypeConfiguration<OutboxEve
 
         builder.HasKey(x => x.EventId);
 
+        builder.HasIndex(x => new { x.OccurredOnUtc, x.ProcessedOnUtc }, "IX_outbox_messages_unprocessed")
+            .IncludeProperties(x => new { x.EventId, x.Type })
+            .IsDescending(false, false)
+            .HasFilter("processed_on_utc IS NULL");
+
         builder.Property(x => x.EventId).ValueGeneratedNever().HasColumnName("event_id").IsRequired();
         builder.Property(x => x.Type).HasColumnName("type").IsRequired();
         builder.Property(x => x.Content).HasColumnName("content").IsRequired();
@@ -146,6 +153,11 @@ internal class InboxEventTypeConfiguration : IEntityTypeConfiguration<InboxEvent
         builder.ToTable("inbox");
 
         builder.HasKey(x => x.EventId);
+        
+        builder.HasIndex(x => new { x.OccurredOnUtc, x.ProcessedOnUtc }, "IX_inbox_messages_unprocessed")
+            .IncludeProperties(x => new { x.EventId, x.Type })
+            .IsDescending(false, false)
+            .HasFilter("processed_on_utc IS NULL");
 
         builder.Property(x => x.EventId).ValueGeneratedNever().HasColumnName("event_id").IsRequired();
         builder.Property(x => x.Type).HasColumnName("type").IsRequired();

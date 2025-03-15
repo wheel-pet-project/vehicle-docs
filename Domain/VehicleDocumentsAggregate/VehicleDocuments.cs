@@ -1,4 +1,5 @@
 using Domain.SharedKernel;
+using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
 using Domain.SharedKernel.Exceptions.ArgumentException;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleDocumentsAggregate.DomainEvents;
@@ -46,6 +47,8 @@ public sealed class VehicleDocuments : Aggregate
 
     public void MarkAsOsagoAdded()
     {
+        if (Status.IsOsagoAdded) throw new AlreadyHaveThisStateException("Osago already added for this vehicle");
+        
         Status.MarkAsOsagoAdded();
         if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
     }

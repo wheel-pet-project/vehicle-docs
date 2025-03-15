@@ -29,7 +29,7 @@ public class OsagoRepositoryShould : IntegrationTestBase
 
         // Assert
         osago.ClearDomainEvents();
-        var osagoFromDb = await repository.GetById(osago.Id);
+        var osagoFromDb = await repository.GetByVehicleDocumentsId(_vehicleDocuments.Id);
         Assert.NotNull(osagoFromDb);
         Assert.Equal(osago, osagoFromDb);
     }
@@ -50,7 +50,7 @@ public class OsagoRepositoryShould : IntegrationTestBase
         await repositoryForArrange.Add(osago);
         await uowForArrange.Commit();
         var (repository, uow) = RepositoryAndUnitOfWorkBuilder.Build(Context);
-        var osagoFromDb = await repository.GetById(osago.Id);
+        var osagoFromDb = await repository.GetByVehicleDocumentsId(_vehicleDocuments.Id);
         osagoFromDb.Expire(fakeTimeProvider);
 
         // Act
@@ -59,13 +59,13 @@ public class OsagoRepositoryShould : IntegrationTestBase
 
         // Assert
         osago.ClearDomainEvents();
-        var osagoFromDbAfterUpdate = await repositoryForArrange.GetById(osago.Id);
+        var osagoFromDbAfterUpdate = await repositoryForArrange.GetByVehicleDocumentsId(_vehicleDocuments.Id);
         Assert.NotNull(osagoFromDbAfterUpdate);
         Assert.Equal(osago, osagoFromDbAfterUpdate);
     }
 
     [Fact]
-    public async Task GetById()
+    public async Task GetByVehicleDocumentsId()
     {
         // Arrange
         await AddVehicleDocuments(_vehicleDocuments, Context);
@@ -79,7 +79,7 @@ public class OsagoRepositoryShould : IntegrationTestBase
         var (repository, _) = RepositoryAndUnitOfWorkBuilder.Build(Context);
 
         // Act
-        var actual = await repository.GetById(osago.Id);
+        var actual = await repository.GetByVehicleDocumentsId(_vehicleDocuments.Id);
 
         // Assert
         osago.ClearDomainEvents();

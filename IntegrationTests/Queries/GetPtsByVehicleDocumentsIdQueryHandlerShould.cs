@@ -1,6 +1,4 @@
-using Application.UseCases.Queries.DapperMappingExtensions;
 using Application.UseCases.Queries.GetPtsByVehicleDocumentsId;
-using Dapper;
 using Domain.SharedKernel.Errors;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleDocumentsAggregate;
@@ -24,7 +22,6 @@ public class GetPtsByVehicleDocumentsIdQueryHandlerShould : IntegrationTestBase
     [Fact]
     public async Task ReturnPtsWithCorrectValues()
     {
-        SqlMapper.AddTypeHandler(new DateOnlyMapper());
         var query = new GetPtsByVehicleDocumentsIdQuery(_vehicleDocuments.Id);
         _vehicleDocuments.AddPts(_pts);
         await Context.VehicleDocuments.AddAsync(_vehicleDocuments, TestContext.Current.CancellationToken);
@@ -50,7 +47,6 @@ public class GetPtsByVehicleDocumentsIdQueryHandlerShould : IntegrationTestBase
     [Fact]
     public async Task ReturnNotFoundErrorIfPtsNotFound()
     {
-        SqlMapper.AddTypeHandler(new DateOnlyMapper());
         var query = new GetPtsByVehicleDocumentsIdQuery(_vehicleDocuments.Id);
 
         await Context.VehicleDocuments.AddAsync(_vehicleDocuments, TestContext.Current.CancellationToken);

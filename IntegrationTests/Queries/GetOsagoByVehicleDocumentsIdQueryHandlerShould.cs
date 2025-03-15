@@ -1,6 +1,4 @@
-using Application.UseCases.Queries.DapperMappingExtensions;
 using Application.UseCases.Queries.GetOsagoByVehicleDocumentsId;
-using Dapper;
 using Domain.OsagoAggregate;
 using Domain.SharedKernel.Errors;
 using Domain.VehicleDocumentsAggregate;
@@ -26,8 +24,6 @@ public class GetOsagoByVehicleDocumentsIdQueryHandlerShould : IntegrationTestBas
     public async Task ReturnOsagoWithCorrectValues()
     {
         // Arrange
-        SqlMapper.AddTypeHandler(new DateOnlyMapper());
-
         var vehicleDocumentsId = await AddVehicleDocuments(_vehicleDocuments);
 
         var expectedOsago = Osago.Create(vehicleDocumentsId, _photoBucketAndKey, _dateOfIssue,
@@ -56,8 +52,6 @@ public class GetOsagoByVehicleDocumentsIdQueryHandlerShould : IntegrationTestBas
     public async Task ReturnNotFoundErrorIfPtsNotFound()
     {
         // Arrange
-        SqlMapper.AddTypeHandler(new DateOnlyMapper());
-
         var vehicleDocumentsId = await AddVehicleDocuments(_vehicleDocuments);
 
         var query = new GetOsagoByVehicleDocumentsIdQuery(vehicleDocumentsId);

@@ -113,40 +113,6 @@ public class OsagoShould
     }
 
     [Fact]
-    public void IsExpiredReturnFalseIfDateOfExpiryNotComeYet()
-    {
-        // Arrange
-        var dateOfIssue = DateOnly.FromDateTime(DateTime.Now.AddYears(-1));
-        var dateOfExpiry = DateOnly.FromDateTime(DateTime.Now);
-        var osago = Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
-        var fakeTimeProvider = new FakeTimeProvider();
-        fakeTimeProvider.SetUtcNow(DateTimeOffset.UtcNow.AddDays(-10));
-
-        // Act
-        var actual = osago.IsExpired(fakeTimeProvider);
-
-        // Assert
-        Assert.False(actual);
-    }
-
-    [Fact]
-    public void IsExpiredReturnTrueIfDateOfExpiryComeYet()
-    {
-        // Arrange
-        var dateOfIssue = DateOnly.FromDateTime(DateTime.Now.AddYears(-1));
-        var dateOfExpiry = DateOnly.FromDateTime(DateTime.Now);
-        var osago = Osago.Create(_vehicleDocumentsId, _photoStorageBucketAndKey, dateOfIssue, dateOfExpiry);
-        var fakeTimeProvider = new FakeTimeProvider();
-        fakeTimeProvider.SetUtcNow(DateTimeOffset.UtcNow.AddDays(+10));
-
-        // Act
-        var actual = osago.IsExpired(fakeTimeProvider);
-
-        // Assert
-        Assert.True(actual);
-    }
-
-    [Fact]
     public void ExpireChangeExpiryStatus()
     {
         // Arrange

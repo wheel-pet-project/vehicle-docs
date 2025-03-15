@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Dapper;
 using Domain.SharedKernel;
+using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
 using JsonNet.ContractResolvers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -26,7 +27,8 @@ public class OutboxBackgroundJob(
     public async Task Execute(IJobExecutionContext jobExecutionContext)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
-        var outboxEvents = (await connection.QueryAsync<OutboxEvent>(QuerySql)).AsList().AsReadOnly();
+        await using var transaction = await connection.BeginTransactionAsync();
+        var outboxEvents = (await connection.QueryAsync<OutboxEvent>(QuerySql, transaction)).AsList().AsReadOnly();
 
         if (outboxEvents.Count > 0)
         {
@@ -57,10 +59,9 @@ public class OutboxBackgroundJob(
                 parameters.Add($"EventId{i}", updateList[i]);
                 parameters.Add($"ProcessedOnUtc{i}", processedTime);
             }
-
-            await using var transaction = await connection.BeginTransactionAsync();
+            
             await connection.ExecuteAsync(formattedSql, parameters, transaction);
-
+            
             await transaction.CommitAsync();
         }
 
@@ -76,6 +77,10 @@ public class OutboxBackgroundJob(
                 await mediator.Publish(@event, cancellationToken);
                 updateQueue.Enqueue(@event.EventId);
             }
+            catch (AlreadyHaveThisStateException)
+            {
+                updateQueue.Enqueue(@event.EventId);
+            }
             catch (Exception e)
             {
                 logger.LogError("Failed of processing outbox events and save update, exception: {e}", e);
@@ -86,10 +91,7 @@ public class OutboxBackgroundJob(
     private const string QuerySql =
         """
         SELECT event_id AS EventId, 
-               type AS Type, 
-               content AS Content, 
-               occurred_on_utc AS OccurredOnUtc, 
-               processed_on_utc AS ProcessedOnUtc
+               content AS Content
         FROM outbox
         WHERE processed_on_utc IS NULL
         ORDER BY occurred_on_utc
