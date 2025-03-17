@@ -22,6 +22,7 @@ public class Program
             .RegisterPostgresContextAndDataSource()
             .RegisterS3Storage()
             .RegisterMediatorAndHandlers()
+            .RegisterDomainServices()
             .RegisterInboxAndOutboxBackgroundJobs()
             .RegisterSerilog()
             .RegisterRepositories()

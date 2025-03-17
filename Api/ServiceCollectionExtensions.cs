@@ -18,6 +18,7 @@ using Application.UseCases.Queries.GetStsByVehicleDocumentsId;
 using Application.UseCases.Queries.GetVehicleDocumentsByVehicleId;
 using Confluent.Kafka;
 using Domain.OsagoAggregate.DomainEvents;
+using Domain.Services;
 using Domain.VehicleDocumentsAggregate.DomainEvents;
 using FluentResults;
 using From.VehicleDocumentsKafkaEvents;
@@ -26,7 +27,6 @@ using Infrastructure.Adapters.ImageValidators;
 using Infrastructure.Adapters.Kafka;
 using Infrastructure.Adapters.Postgres;
 using Infrastructure.Adapters.Postgres.Inbox;
-using Infrastructure.Adapters.Postgres.OsagoActualityObserver;
 using Infrastructure.Adapters.Postgres.Outbox;
 using Infrastructure.Adapters.Postgres.Repositories;
 using Infrastructure.Adapters.S3;
@@ -143,6 +143,13 @@ public static class ServiceCollectionExtensions
             optionsBuilder.EnableSensitiveDataLogging();
         });
 
+        return services;
+    }
+
+    public static IServiceCollection RegisterDomainServices(this IServiceCollection services)
+    {
+        services.AddTransient<ICreateVehicleDocumentsService, CreateVehicleDocumentsService>();
+        
         return services;
     }
 

@@ -4,7 +4,6 @@ using Application.Ports.Postgres;
 using Domain.OsagoAggregate;
 using Domain.OsagoAggregate.DomainEvents;
 using Domain.SharedKernel.Exceptions.DataConsistencyViolationException;
-using Domain.VehicleDocumentsAggregate;
 using FluentResults;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Time.Testing;

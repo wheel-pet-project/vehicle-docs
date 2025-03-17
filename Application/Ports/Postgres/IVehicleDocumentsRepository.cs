@@ -8,5 +8,7 @@ public interface IVehicleDocumentsRepository
 
     Task<VehicleDocuments?> GetById(Guid id);
 
+    Task<VehicleDocuments?> GetByVehicleId(Guid vehicleId);
+
     void Update(VehicleDocuments vehicleDocuments);
 }

@@ -16,6 +16,11 @@ public class VehicleDocumentsRepository(DataContext context) : IVehicleDocuments
         return await context.VehicleDocuments.FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<VehicleDocuments?> GetByVehicleId(Guid vehicleId)
+    {
+        return await context.VehicleDocuments.FirstOrDefaultAsync(x => x.VehicleId == vehicleId);
+    }
+
     public void Update(VehicleDocuments vehicleDocuments)
     {
         context.VehicleDocuments.Update(vehicleDocuments);

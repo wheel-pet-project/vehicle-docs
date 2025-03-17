@@ -66,6 +66,23 @@ public class VehicleDocumentsRepositoryShould : IntegrationTestBase
         Assert.NotNull(actual);
         Assert.Equal(_vehicleDocuments, actual);
     }
+    
+    [Fact]
+    public async Task GetByVehicleId()
+    {
+        // Arrange
+        var (repository, uow) = RepositoryAndUnitOfWorkBuilder.Build(Context);
+        await repository.Add(_vehicleDocuments);
+        await uow.Commit();
+
+        // Act
+        var actual = await repository.GetByVehicleId(_vehicleDocuments.VehicleId);
+
+        // Assert
+        _vehicleDocuments.ClearDomainEvents();
+        Assert.NotNull(actual);
+        Assert.Equal(_vehicleDocuments, actual);
+    }
 
     private static class RepositoryAndUnitOfWorkBuilder
     {

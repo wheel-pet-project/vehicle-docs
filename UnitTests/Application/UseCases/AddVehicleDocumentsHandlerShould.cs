@@ -1,5 +1,6 @@
 using Application.Ports.Postgres;
 using Application.UseCases.Commands.AddVehicleDocuments;
+using Domain.Services;
 using FluentResults;
 using JetBrains.Annotations;
 using Moq;
@@ -12,6 +13,7 @@ public class AddVehicleDocumentsHandlerShould
 {
     private readonly AddVehicleDocumentsCommand _command = new(Guid.NewGuid());
 
+    private readonly Mock<ICreateVehicleDocumentsService> _mockCreateVehicleDocumentsServiceMock = new();
     private readonly Mock<IVehicleDocumentsRepository> _vehicleDocumentsRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
 
@@ -21,7 +23,8 @@ public class AddVehicleDocumentsHandlerShould
     {
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
 
-        _handler = new AddVehicleDocumentsHandler(_vehicleDocumentsRepositoryMock.Object, _unitOfWorkMock.Object);
+        _handler = new AddVehicleDocumentsHandler(_mockCreateVehicleDocumentsServiceMock.Object,
+            _vehicleDocumentsRepositoryMock.Object, _unitOfWorkMock.Object);
     }
 
     [Fact]
