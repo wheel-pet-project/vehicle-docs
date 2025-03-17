@@ -32,7 +32,8 @@ public class Program
             .RegisterMassTransit()
             .RegisterTelemetry()
             .RegisterHealthCheckV1()
-            .RegisterImageValidators();
+            .RegisterImageValidators()
+            .RegisterTimeProvider();
 
         var app = builder.Build();
 

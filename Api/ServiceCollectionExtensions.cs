@@ -240,6 +240,13 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection RegisterTimeProvider(this IServiceCollection services)
+    {
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        
+        return services;
+    }
+
     public static IServiceCollection RegisterMassTransit(this IServiceCollection services)
     {
         services.Configure<KafkaTopicsConfiguration>(config =>
