@@ -15,7 +15,7 @@ namespace UnitTests.Application.UseCases;
 [TestSubject(typeof(AddPtsToVehicleDocumentsHandler))]
 public class AddPtsToVehicleDocumentsHandlerShould
 {
-    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
     private readonly AddPtsToVehicleDocumentsCommand _command = new(Guid.NewGuid(), [1, 2, 3], [1, 2, 3],
         DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1), Color.Blue, "SALYA2BN2KA791786");

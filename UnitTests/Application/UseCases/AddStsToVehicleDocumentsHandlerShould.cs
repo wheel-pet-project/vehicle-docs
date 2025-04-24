@@ -14,7 +14,7 @@ namespace UnitTests.Application.UseCases;
 [TestSubject(typeof(AddStsToVehicleDocumentsHandler))]
 public class AddStsToVehicleDocumentsHandlerShould
 {
-    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
     private readonly AddStsToVehicleDocumentsCommand _command = new(Guid.NewGuid(), [1, 2, 3], [1, 2, 3]);
 

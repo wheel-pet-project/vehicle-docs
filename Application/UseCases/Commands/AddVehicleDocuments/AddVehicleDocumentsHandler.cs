@@ -14,7 +14,10 @@ public class AddVehicleDocumentsHandler(
     {
         var existingVehicleDocuments = await vehicleDocumentsRepository.GetByVehicleId(command.VehicleId);
         
-        var vehicleDocuments = createVehicleDocumentsService.Create(existingVehicleDocuments, command.VehicleId);
+        var vehicleDocuments = createVehicleDocumentsService.Create(
+            existingVehicleDocuments, 
+            command.SagaId, 
+            command.VehicleId);
 
         await vehicleDocumentsRepository.Add(vehicleDocuments);
 

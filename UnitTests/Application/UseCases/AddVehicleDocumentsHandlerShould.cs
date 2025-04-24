@@ -11,7 +11,7 @@ namespace UnitTests.Application.UseCases;
 [TestSubject(typeof(AddVehicleDocumentsHandler))]
 public class AddVehicleDocumentsHandlerShould
 {
-    private readonly AddVehicleDocumentsCommand _command = new(Guid.NewGuid());
+    private readonly AddVehicleDocumentsCommand _command = new(Guid.NewGuid(), Guid.NewGuid());
 
     private readonly Mock<ICreateVehicleDocumentsService> _mockCreateVehicleDocumentsServiceMock = new();
     private readonly Mock<IVehicleDocumentsRepository> _vehicleDocumentsRepositoryMock = new();

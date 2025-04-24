@@ -9,7 +9,7 @@ namespace IntegrationTests.Repositories;
 [TestSubject(typeof(VehicleDocumentsRepository))]
 public class VehicleDocumentsRepositoryShould : IntegrationTestBase
 {
-    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
     [Fact]
     public async Task Add()

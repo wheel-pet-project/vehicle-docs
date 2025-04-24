@@ -10,7 +10,7 @@ namespace UnitTests.Application.DomainEventHandlers;
 [TestSubject(typeof(DocumentAddingCompletedHandler))]
 public class DocumentAddingCompletedHandlerShould
 {
-    private readonly DocumentAddingCompletedDomainEvent _event = new(Guid.NewGuid());
+    private readonly DocumentAddingCompletedDomainEvent _event = new(Guid.NewGuid(), Guid.NewGuid());
 
     private readonly Mock<IMessageBus> _messageBusMock = new();
 

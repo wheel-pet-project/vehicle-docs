@@ -4,7 +4,7 @@ using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Npgsql;
 
-namespace Api;
+namespace Api.Interceptors;
 
 public class ExceptionHandlerInterceptor(ILogger<ExceptionHandlerInterceptor> logger) : Interceptor
 {

@@ -10,6 +10,7 @@ namespace UnitTests.Domain.VehicleDocumentsAggregate;
 [TestSubject(typeof(VehicleDocuments))]
 public class VehicleDocumentsShould
 {
+    private readonly Guid _sagaId = Guid.NewGuid();
     private readonly Guid _vehicleId = Guid.NewGuid();
     private readonly Sts _sts = Sts.Create(new string('*', 10), new string('*', 10));
 
@@ -23,7 +24,7 @@ public class VehicleDocumentsShould
         // Arrange
 
         // Act
-        var actual = VehicleDocuments.Create(_vehicleId);
+        var actual = VehicleDocuments.Create(_sagaId, _vehicleId);
 
         // Assert
         Assert.NotNull(actual);
@@ -32,6 +33,21 @@ public class VehicleDocumentsShould
         Assert.False(actual.Status.AddingCompleted);
         Assert.Null(actual.Pts);
         Assert.Null(actual.Sts);
+    }
+    
+    [Fact]
+    public void ThrowValueIsRequiredExceptionIfSagaIdIsEmpty()
+    {
+        // Arrange
+
+        // Act
+        void Act()
+        {
+            VehicleDocuments.Create(Guid.Empty, _vehicleId);
+        }
+
+        // Assert
+        Assert.Throws<ValueIsRequiredException>(Act);
     }
 
     [Fact]
@@ -42,7 +58,7 @@ public class VehicleDocumentsShould
         // Act
         void Act()
         {
-            VehicleDocuments.Create(Guid.Empty);
+            VehicleDocuments.Create(_sagaId, Guid.Empty);
         }
 
         // Assert
@@ -55,7 +71,7 @@ public class VehicleDocumentsShould
         // Arrange
         var pts = Pts.Create(new string('*', 10), new string('*', 10), DateOnly.FromDateTime(DateTime.UtcNow),
             Color.Beige, Vin.Create("SALYA2BN2KA791786"));
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
 
         // Act
         vehicleDocuments.AddPts(pts);
@@ -69,7 +85,7 @@ public class VehicleDocumentsShould
     public void AddPtsChangeStatus()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
 
         // Act
         vehicleDocuments.AddPts(_pts);
@@ -82,7 +98,7 @@ public class VehicleDocumentsShould
     public void AddPtsAddDomainEventIfAllDocumentsAreAdded()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
         vehicleDocuments.AddSts(_sts);
         vehicleDocuments.MarkAsOsagoAdded();
         vehicleDocuments.ClearDomainEvents();
@@ -98,7 +114,7 @@ public class VehicleDocumentsShould
     public void AddPtsThrowValueIsRequiredExceptionIfPtsIsNull()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
 
         // Act
         void Act()
@@ -114,7 +130,7 @@ public class VehicleDocumentsShould
     public void AddSts()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
 
         // Act
         vehicleDocuments.AddSts(_sts);
@@ -128,7 +144,7 @@ public class VehicleDocumentsShould
     public void AddStsChangeStatus()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
 
         // Act
         vehicleDocuments.AddSts(_sts);
@@ -141,7 +157,7 @@ public class VehicleDocumentsShould
     public void AddStsAddDomainEvent()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
         vehicleDocuments.AddPts(_pts);
         vehicleDocuments.MarkAsOsagoAdded();
         vehicleDocuments.ClearDomainEvents();
@@ -157,7 +173,7 @@ public class VehicleDocumentsShould
     public void AddStsThrowValueIsRequiredExceptionIfStsIsNull()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
 
         // Act
         void Act()
@@ -173,7 +189,7 @@ public class VehicleDocumentsShould
     public void MarkAsOsagoAddedChangeStatus()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
 
         // Act
         vehicleDocuments.MarkAsOsagoAdded();
@@ -186,7 +202,7 @@ public class VehicleDocumentsShould
     public void MarkAsOsagoAddedAddDomainEvent()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
         vehicleDocuments.AddPts(_pts);
         vehicleDocuments.AddSts(_sts);
         vehicleDocuments.ClearDomainEvents();
@@ -202,7 +218,7 @@ public class VehicleDocumentsShould
     public void MarkAsOsagoAddedThrowAlreadyHaveThisStateExceptionIfOsagoAlreadyAdded()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(_sagaId, _vehicleId);
         vehicleDocuments.AddPts(_pts);
         vehicleDocuments.AddSts(_sts);
         vehicleDocuments.MarkAsOsagoAdded();

@@ -13,7 +13,7 @@ public class GetStsByVehicleDocumentsIdQueryHandlerShould : IntegrationTestBase
 {
     private readonly string _yandexS3TestHost = "yandex.testhost";
 
-    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
     private readonly Sts _sts = Sts.Create(new string('*', 10), new string('*', 10));
 

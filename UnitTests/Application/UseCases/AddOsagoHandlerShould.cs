@@ -12,7 +12,7 @@ namespace UnitTests.Application.UseCases;
 
 public class AddOsagoHandlerShould
 {
-    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
     private readonly AddOsagoCommand _command = new(Guid.NewGuid(), [1, 2, 3], DateOnly.FromDateTime(DateTime.UtcNow),
         DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1)));

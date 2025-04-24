@@ -15,7 +15,7 @@ public class OsagoAddedHandlerShould
 {
     private readonly OsagoAddedDomainEvent _domainEvent = new(Guid.NewGuid());
 
-    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
     private readonly Mock<IVehicleDocumentsRepository> _repositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
@@ -58,7 +58,7 @@ public class OsagoAddedHandlerShould
     }
 
     [Fact]
-    public async Task ThrowTaskCanceledExceptionIfCommitFailed()
+    public async Task ThrowExceptionIfCommitFailed()
     {
         // Arrange
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Fail("error"));
@@ -70,6 +70,6 @@ public class OsagoAddedHandlerShould
         }
 
         // Assert
-        await Assert.ThrowsAsync<TaskCanceledException>(Act);
+        await Assert.ThrowsAnyAsync<Exception>(Act);
     }
 }

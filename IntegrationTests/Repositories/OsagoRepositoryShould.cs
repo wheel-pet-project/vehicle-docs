@@ -11,7 +11,7 @@ namespace IntegrationTests.Repositories;
 [TestSubject(typeof(OsagoRepository))]
 public class OsagoRepositoryShould : IntegrationTestBase
 {
-    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
     [Fact]
     public async Task Add()

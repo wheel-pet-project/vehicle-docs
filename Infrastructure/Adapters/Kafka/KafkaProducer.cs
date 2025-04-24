@@ -30,7 +30,7 @@ public class KafkaProducer(
             new Uri($"topic:{_configuration.DocumentAddingCompletedTopic}"));
 
         await producer.Produce(domainEvent.EventId.ToString(),
-            new DocumentAddingCompleted(domainEvent.EventId, domainEvent.VehicleId),
+            new DocumentAddingCompleted(domainEvent.EventId, domainEvent.SagaId, domainEvent.VehicleId),
             SetMessageId<DocumentAddingCompleted, DocumentAddingCompletedDomainEvent>(domainEvent), cancellationToken);
     }
 

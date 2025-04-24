@@ -18,9 +18,9 @@ public sealed class UnitOfWork(DataContext context) : IUnitOfWork, IDisposable
             await context.SaveChangesAsync();
             return Result.Ok();
         }
-        catch
+        catch (Exception e)
         {
-            return Result.Fail(new CommitFail("Failed to commit changes"));
+            return Result.Fail(new CommitFail("Failed to commit changes", e));
         }
     }
 

@@ -27,6 +27,7 @@ using Infrastructure.Adapters.ImageValidators;
 using Infrastructure.Adapters.Kafka;
 using Infrastructure.Adapters.Postgres;
 using Infrastructure.Adapters.Postgres.Inbox;
+using Infrastructure.Adapters.Postgres.OsagoActualityObserver;
 using Infrastructure.Adapters.Postgres.Outbox;
 using Infrastructure.Adapters.Postgres.Repositories;
 using Infrastructure.Adapters.S3;
@@ -311,11 +312,11 @@ public static class ServiceCollectionExtensions
                 .AddTrigger(trigger => trigger.ForJob(inboxJobKey)
                     .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInSeconds(3).RepeatForever()));
 
-            // var osagoActualityObserverJobKey = new JobKey(nameof(OsagoActualityObserverBackgroundJob));
-            // configure
-            //     .AddJob<OsagoActualityObserverBackgroundJob>(j => j.WithIdentity(osagoActualityObserverJobKey))
-            //     .AddTrigger(trigger => trigger.ForJob(osagoActualityObserverJobKey)
-            //         .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInMinutes(30).RepeatForever()));
+            var osagoActualityObserverJobKey = new JobKey(nameof(OsagoActualityObserverBackgroundJob));
+            configure
+                .AddJob<OsagoActualityObserverBackgroundJob>(j => j.WithIdentity(osagoActualityObserverJobKey))
+                .AddTrigger(trigger => trigger.ForJob(osagoActualityObserverJobKey)
+                    .WithSimpleSchedule(scheduleBuilder => scheduleBuilder.WithIntervalInMinutes(20).RepeatForever()));
         });
 
         services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);

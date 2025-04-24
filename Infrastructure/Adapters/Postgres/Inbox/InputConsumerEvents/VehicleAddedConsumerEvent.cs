@@ -4,13 +4,14 @@ using MediatR;
 
 namespace Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;
 
-public class VehicleAddedConsumerEvent(Guid eventId, Guid vehicleId) : IInputConsumerEvent
+public class VehicleAddedConsumerEvent(Guid eventId, Guid sagaId, Guid vehicleId) : IInputConsumerEvent
 {
     public Guid EventId { get; } = eventId;
+    public Guid SagaId { get; } = sagaId;
     public Guid VehicleId { get; } = vehicleId;
 
     public IRequest<Result> ToCommand()
     {
-        return new AddVehicleDocumentsCommand(VehicleId);
+        return new AddVehicleDocumentsCommand(SagaId, VehicleId);
     }
 }

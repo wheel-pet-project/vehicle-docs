@@ -1,6 +1,7 @@
 using Application.Ports.Kafka;
 using Application.Ports.Postgres;
 using Domain.OsagoAggregate.DomainEvents;
+using Domain.SharedKernel.Errors;
 using Domain.SharedKernel.Exceptions.DataConsistencyViolationException;
 using MediatR;
 
@@ -24,7 +25,7 @@ public class OsagoExpiredHandler(
         osagoRepository.Update(osago);
 
         var commitResult = await unitOfWork.Commit();
-        if (commitResult.IsFailed) throw new TaskCanceledException("Could not commit updates");
+        if (commitResult.IsFailed) throw ((CommitFail)commitResult.Errors[0]).Exception;
 
         await messageBus.Publish(domainEvent, cancellationToken);
     }

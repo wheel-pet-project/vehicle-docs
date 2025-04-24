@@ -22,7 +22,7 @@ public class GetVehicleDocumentsByVehicleIdQueryHandlerShould : IntegrationTestB
     public async Task ReturnVehicleDocumentWithCorrectValues()
     {
         // Arrange
-        var vehicleDocuments = VehicleDocuments.Create(_query.VehicleId);
+        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), _query.VehicleId);
         vehicleDocuments.MarkAsOsagoAdded();
         vehicleDocuments.AddPts(_pts);
         vehicleDocuments.AddSts(_sts);

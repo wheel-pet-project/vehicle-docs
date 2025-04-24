@@ -4,4 +4,7 @@ using FluentResults;
 namespace Domain.SharedKernel.Errors;
 
 [ExcludeFromCodeCoverage]
-public class CommitFail(string message) : Error(message);
+public class CommitFail(string message, Exception exception) : Error(message)
+{
+    public Exception Exception = exception;
+}

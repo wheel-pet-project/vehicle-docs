@@ -8,30 +8,46 @@ namespace UnitTests.Domain.VehicleDocumentsAggregate.DomainEvents;
 [TestSubject(typeof(DocumentAddingCompletedDomainEvent))]
 public class DocumentsAddingCompletedDomainEventShould
 {
+    private readonly Guid _sagaId = Guid.NewGuid();
+    private readonly Guid _vehicleId = Guid.NewGuid();
+    
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
         // Arrange
-        var vehicleId = Guid.NewGuid();
 
         // Act
-        var actual = new DocumentAddingCompletedDomainEvent(vehicleId);
+        var actual = new DocumentAddingCompletedDomainEvent(_sagaId, _vehicleId);
 
         // Assert
         Assert.NotNull(actual);
-        Assert.Equal(vehicleId, actual.VehicleId);
+        Assert.Equal(_vehicleId, actual.VehicleId);
     }
 
     [Fact]
     public void ThrowValueIsRequiredExceptionIfVehicleIdIsEmpty()
     {
         // Arrange
-        var vehicleId = Guid.Empty;
 
         // Act
         void Act()
         {
-            new DocumentAddingCompletedDomainEvent(vehicleId);
+            new DocumentAddingCompletedDomainEvent(_sagaId, Guid.Empty);
+        }
+
+        // Assert
+        Assert.Throws<ValueIsRequiredException>(Act);
+    }
+    
+    [Fact]
+    public void ThrowValueIsRequiredExceptionIfSagaIdIsEmpty()
+    {
+        // Arrange
+
+        // Act
+        void Act()
+        {
+            new DocumentAddingCompletedDomainEvent(Guid.Empty, _vehicleId);
         }
 
         // Assert

@@ -22,7 +22,7 @@ public class InboxBackgroundJobShould : IntegrationTestBase
         ContractResolver = new PrivateSetterContractResolver()
     };
 
-    private readonly IInputConsumerEvent _event = new VehicleAddedConsumerEvent(Guid.NewGuid(), Guid.NewGuid());
+    private readonly IInputConsumerEvent _event = new VehicleAddedConsumerEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
     [Fact]
     public async Task MarkProcessedEvents()

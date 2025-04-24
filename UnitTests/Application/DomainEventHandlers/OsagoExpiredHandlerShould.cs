@@ -65,7 +65,7 @@ public class OsagoExpiredHandlerShould
     }
 
     [Fact]
-    public async Task ThrowTaskCanceledExceptionIfCommitFailed()
+    public async Task ThrowExceptionIfCommitFailed()
     {
         // Arrange
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Fail("error"));
@@ -77,7 +77,7 @@ public class OsagoExpiredHandlerShould
         }
 
         // Assert
-        await Assert.ThrowsAsync<TaskCanceledException>(Act);
+        await Assert.ThrowsAnyAsync<Exception>(Act);
     }
 
     [Fact]

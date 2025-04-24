@@ -50,13 +50,10 @@ public class OsagoActualityObserverBackgroundJobShould : IntegrationTestBase
 
     private async Task AddExpiredOsago()
     {
-        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+        var vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
         await Context.VehicleDocuments.AddAsync(vehicleDocuments);
         await Context.SaveChangesAsync();
-
-        var fakeTimeProvider = new FakeTimeProvider();
-        fakeTimeProvider.SetUtcNow(DateTimeOffset.UtcNow.AddDays(-1));
 
         var osago = Osago.Create(vehicleDocuments.Id, "photoStorageBucketAndKey",
             DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-2)), DateOnly.FromDateTime(DateTime.UtcNow));

@@ -27,11 +27,12 @@ public class InboxBackgroundJob(
     public async Task Execute(IJobExecutionContext jobExecutionContext)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
-        var inboxEvents = (await connection.QueryAsync<InboxEvent>(QuerySql)).AsList().AsReadOnly();
+        await using var transaction = await connection.BeginTransactionAsync();
+        var inboxEvents = (await connection.QueryAsync<InboxEvent>(QuerySql, transaction)).AsList().AsReadOnly();
 
         if (inboxEvents.Count > 0)
         {
-            var updateQueue = new ConcurrentQueue<Guid>();
+            var updateQueue = new ConcurrentQueue<EventUpdate>();
 
             var consumerEvents = inboxEvents
                 .Select(ev => JsonConvert.DeserializeObject<IInputConsumerEvent>(ev.Content, _jsonSerializerSettings))
@@ -47,19 +48,10 @@ public class InboxBackgroundJob(
 
             await Task.WhenAll(sendTasks);
 
-            var updateList = updateQueue.ToList();
-            var paramNames = string.Join(",", updateList.Select((_, i) => $"(@EventId{i}, @ProcessedOnUtc{i})"));
-            var formattedSql = string.Format(UpdateSql, paramNames);
+            var updates = updateQueue.ToList();
+            var formattedSql = FormatSql(updates);
+            var parameters = GenerateDynamicParameters(updates);
 
-            var processedTime = DateTime.UtcNow;
-            var parameters = new DynamicParameters();
-            for (var i = 0; i < updateList.Count; i++)
-            {
-                parameters.Add($"EventId{i}", updateList[i]);
-                parameters.Add($"ProcessedOnUtc{i}", processedTime);
-            }
-
-            await using var transaction = await connection.BeginTransactionAsync();
             await connection.ExecuteAsync(formattedSql, parameters, transaction);
 
             await transaction.CommitAsync();
@@ -69,23 +61,50 @@ public class InboxBackgroundJob(
 
         async Task SendToMediator(
             IInputConsumerEvent @event,
-            ConcurrentQueue<Guid> updateQueue,
+            ConcurrentQueue<EventUpdate> updateQueue,
             CancellationToken cancellationToken)
         {
             try
             {
                 var processingResult = await mediator.Send(@event.ToCommand(), cancellationToken);
-                if (processingResult.IsSuccess) updateQueue.Enqueue(@event.EventId);
+                if (processingResult.IsSuccess) updateQueue.Enqueue(new EventUpdate(@event.EventId, DateTime.UtcNow));
             }
             catch (AlreadyHaveThisStateException)
             {
-                updateQueue.Enqueue(@event.EventId);
+                updateQueue.Enqueue(new EventUpdate(@event.EventId, DateTime.UtcNow));
             }
             catch (Exception e)
             {
+                updateQueue.Enqueue(new EventUpdate(@event.EventId));
                 logger.LogError("Fail in processing inbox events, exception: {e}", e);
             }
         }
+    }
+
+    private string FormatSql(List<EventUpdate> updates)
+    {
+        var paramNames = string.Join(",", updates.Select((_, i) => $"(@EventId{i}, @ProcessedOnUtc{i})"));
+        var formattedSql = string.Format(UpdateSql, paramNames);
+        
+        return formattedSql;
+    }
+
+    private DynamicParameters GenerateDynamicParameters(List<EventUpdate> updates)
+    {
+        var parameters = new DynamicParameters();
+        for (var i = 0; i < updates.Count; i++)
+        {
+            parameters.Add($"EventId{i}", updates[i].EventId);
+            parameters.Add($"ProcessedOnUtc{i}", updates[i].ProcessedOnUtc);
+        }
+        
+        return parameters;
+    }
+    
+    private class EventUpdate(Guid eventId, DateTime? processedOnUtc = null)
+    {
+        public Guid EventId { get; } = eventId;
+        public DateTime? ProcessedOnUtc { get; } = processedOnUtc;
     }
 
     private const string QuerySql =

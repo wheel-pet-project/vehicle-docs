@@ -12,14 +12,16 @@ public sealed class VehicleDocuments : Aggregate
     {
     }
 
-    private VehicleDocuments(Guid vehicleId) : this()
+    private VehicleDocuments(Guid sagaId, Guid vehicleId) : this()
     {
         Id = Guid.NewGuid();
+        SagaId = sagaId;
         VehicleId = vehicleId;
         Status = Status.Create();
     }
 
     public Guid Id { get; }
+    public Guid SagaId { get; }
     public Guid VehicleId { get; }
     public Status Status { get; } = null!;
     public Pts? Pts { get; private set; }
@@ -32,7 +34,7 @@ public sealed class VehicleDocuments : Aggregate
         Pts = potentialPts;
 
         Status.MarkAsPtsAdded();
-        if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
+        if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(SagaId, VehicleId));
     }
 
     public void AddSts(Sts potentialSts)
@@ -42,7 +44,7 @@ public sealed class VehicleDocuments : Aggregate
         Sts = potentialSts;
 
         Status.MarkAsStsAdded();
-        if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
+        if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(SagaId, VehicleId));
     }
 
     public void MarkAsOsagoAdded()
@@ -50,14 +52,15 @@ public sealed class VehicleDocuments : Aggregate
         if (Status.IsOsagoAdded) throw new AlreadyHaveThisStateException("Osago already added for this vehicle");
 
         Status.MarkAsOsagoAdded();
-        if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(VehicleId));
+        if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(SagaId, VehicleId));
     }
 
-    public static VehicleDocuments Create(Guid vehicleId)
+    public static VehicleDocuments Create(Guid sagaId, Guid vehicleId)
     {
+        if (sagaId == Guid.Empty) throw new ValueIsRequiredException($"{nameof(sagaId)} cannot be empty");
         if (vehicleId == Guid.Empty) throw new ValueIsRequiredException($"{nameof(vehicleId)} cannot be empty");
 
-        return new VehicleDocuments(vehicleId);
+        return new VehicleDocuments(sagaId, vehicleId);
     }
 
     public override bool Equals(object? obj)

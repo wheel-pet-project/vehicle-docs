@@ -11,7 +11,7 @@ public class InboxShould : IntegrationTestBase
 {
     private Infrastructure.Adapters.Postgres.Inbox.Inbox _inbox = null!;
 
-    private readonly IInputConsumerEvent _event = new VehicleAddedConsumerEvent(Guid.NewGuid(), Guid.NewGuid());
+    private readonly IInputConsumerEvent _event = new VehicleAddedConsumerEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
     private readonly JsonSerializerSettings _jsonSerializerSettings = new()
     {

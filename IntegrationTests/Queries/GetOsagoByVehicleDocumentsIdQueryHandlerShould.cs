@@ -13,7 +13,7 @@ public class GetOsagoByVehicleDocumentsIdQueryHandlerShould : IntegrationTestBas
 {
     private readonly string _yandexS3TestHost = "yandex.testhost";
 
-    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid());
+    private readonly VehicleDocuments _vehicleDocuments = VehicleDocuments.Create(Guid.NewGuid(), Guid.NewGuid());
 
     private readonly string _photoBucketAndKey = "photoBucketAndKey";
     private readonly DateOnly _dateOfIssue = DateOnly.FromDateTime(DateTime.Now);
