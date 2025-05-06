@@ -1,4 +1,4 @@
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using DomainColor = Domain.SharedKernel.ValueObjects.Color;
 
 namespace Api.Adapters.Grpc.EnumMappers;

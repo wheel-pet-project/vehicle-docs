@@ -1,5 +1,5 @@
 using Domain.OsagoAggregate;
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using JetBrains.Annotations;
 using Xunit;
 

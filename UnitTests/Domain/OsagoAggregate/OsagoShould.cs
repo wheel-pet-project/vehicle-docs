@@ -1,6 +1,6 @@
 using Domain.OsagoAggregate;
 using Domain.SharedKernel.Exceptions.InternalExceptions;
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Time.Testing;
 using Xunit;

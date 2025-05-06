@@ -1,5 +1,5 @@
 using CSharpFunctionalExtensions;
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 
 namespace Domain.OsagoAggregate;
 

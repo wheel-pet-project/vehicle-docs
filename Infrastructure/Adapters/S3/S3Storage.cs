@@ -4,7 +4,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Application.Ports.S3;
 using Domain.SharedKernel.Errors;
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using FluentResults;
 using Infrastructure.Options;
 using Microsoft.Extensions.Logging;
@@ -65,11 +65,11 @@ public class S3Storage(
         });
     }
 
-    private async Task<Result<T>> ProcessWithExceptionHandling<T>(Func<Task<Result<T>>> task)
+    private async Task<Result<T>> ProcessWithExceptionHandling<T>(Func<Task<Result<T>>> func)
     {
         try
         {
-            return await task();
+            return await func();
         }
         catch (AmazonS3Exception ex)
         {

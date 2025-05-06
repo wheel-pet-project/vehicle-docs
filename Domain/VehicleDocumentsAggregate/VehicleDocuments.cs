@@ -1,6 +1,6 @@
 using Domain.SharedKernel;
 using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleDocumentsAggregate.DomainEvents;
 

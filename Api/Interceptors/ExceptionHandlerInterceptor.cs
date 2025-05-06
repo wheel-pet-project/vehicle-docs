@@ -1,7 +1,7 @@
 using Domain.SharedKernel.Exceptions.InternalExceptions;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Npgsql;
 
 namespace Api.Interceptors;
 
@@ -16,31 +16,19 @@ public class ExceptionHandlerInterceptor(ILogger<ExceptionHandlerInterceptor> lo
         {
             return await next(request, context);
         }
-        catch (NpgsqlException ex)
+        catch (PublicException e)
         {
-            logger.LogError("NpgsqlException handled: {@exception}", ex);
-            throw new RpcException(new Status(StatusCode.Unavailable, "Db unavailable, please try again later."));
+            logger.LogWarning("PublicException handled: {@exception}", e);
+            throw new RpcException(new Status(StatusCode.InvalidArgument, e.Message));
         }
-        catch (ArgumentException ex)
+        catch (InternalException e)
         {
-            logger.LogWarning("ArgumentException handled");
-            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+            logger.LogCritical("Internal exception: {@exception}", e);
+            throw new RpcException(new Status(StatusCode.Internal, "Internal error"));
         }
-        catch (DataConsistencyViolationException ex)
+        catch (Exception e) when (e is not RpcException)
         {
-            logger.LogCritical("DataConsistencyViolationException: {exception}", ex);
-            throw new RpcException(new Status(StatusCode.Internal, "Entity invariant violation"));
-        }
-        catch (DomainRulesViolationException ex)
-        {
-            logger.LogWarning("DomainRulesViolationException handled");
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
-        }
-        catch (Exception ex) when (ex is not RpcException)
-        {
-            logger.LogCritical(
-                "[EXCEPTION] type: {type}, exception: {@exception}",
-                ex.GetType().Name, ex);
+            logger.LogCritical("Exception: {@exception}", e);
             throw new RpcException(new Status(StatusCode.Internal, "Internal server error"));
         }
     }

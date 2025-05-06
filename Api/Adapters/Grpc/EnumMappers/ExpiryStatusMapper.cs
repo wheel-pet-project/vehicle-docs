@@ -1,4 +1,4 @@
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using DomainStatus = Domain.OsagoAggregate.ExpiryStatus;
 
 namespace Api.Adapters.Grpc.EnumMappers;

@@ -1,7 +1,7 @@
 using Domain.OsagoAggregate.DomainEvents;
 using Domain.SharedKernel;
 using Domain.SharedKernel.Exceptions.InternalExceptions;
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 
 namespace Domain.OsagoAggregate;
 

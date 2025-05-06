@@ -7,7 +7,7 @@ using Application.UseCases.Queries.GetPtsByVehicleDocumentsId;
 using Application.UseCases.Queries.GetStsByVehicleDocumentsId;
 using Application.UseCases.Queries.GetVehicleDocumentsByVehicleId;
 using Domain.SharedKernel.Errors;
-using Domain.SharedKernel.Exceptions.PublicException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using FluentResults;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
