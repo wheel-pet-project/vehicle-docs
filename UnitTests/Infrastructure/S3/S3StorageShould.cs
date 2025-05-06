@@ -3,6 +3,7 @@ using Application.Ports.S3;
 using Infrastructure.Adapters.S3;
 using Infrastructure.Options;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -23,7 +24,7 @@ public class S3StorageShould
         var storage = storageBuilder.Build();
 
         // Act
-        var actual = await storage.SavePhotos(_frontPhotoBytes, _backPhotoBytes, DocumentType.Sts);
+        var actual = await storage.SaveFrontAndBackPhotos(_frontPhotoBytes, _backPhotoBytes, DocumentType.Sts);
 
         // Assert
         Assert.True(actual.IsSuccess);
@@ -46,7 +47,7 @@ public class S3StorageShould
     private class StorageBuilder
     {
         private readonly Mock<IAmazonS3> _s3Mock = new();
-        private readonly Mock<Microsoft.Extensions.Logging.ILogger<S3Storage>> _loggerMock = new();
+        private readonly Mock<ILogger<S3Storage>> _loggerMock = new();
         private IOptions<S3Options> _s3Options = Options.Create(new S3Options { StsBuckets = ["test_bucket"] });
 
         public IS3Storage Build(string? bucketName = null)

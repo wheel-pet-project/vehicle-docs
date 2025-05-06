@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;
 
-public class VehicleAddedConsumerEvent(Guid eventId, Guid sagaId, Guid vehicleId) : IInputConsumerEvent
+public class VehicleAddedConsumerEvent(Guid eventId, Guid sagaId, Guid vehicleId) : IConvertibleToCommand
 {
     public Guid EventId { get; } = eventId;
     public Guid SagaId { get; } = sagaId;

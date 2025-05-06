@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Application.Ports.Postgres;
 using Domain.OsagoAggregate;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,14 @@ public class OsagoRepository(DataContext context) : IOsagoRepository
         return await context.Osagos
             .Include(x => x.ExpiryStatus)
             .FirstOrDefaultAsync(x => x.VehicleDocumentsId == vehicleDocumentsId);
+    }
+
+    public async Task<List<Osago>> GetAll(Expression<Func<Osago, bool>> predicate)
+    {
+        return await context.Osagos
+            .Include(x => x.ExpiryStatus)
+            .Where(predicate)
+            .ToListAsync();
     }
 
     public void Update(Osago osago)

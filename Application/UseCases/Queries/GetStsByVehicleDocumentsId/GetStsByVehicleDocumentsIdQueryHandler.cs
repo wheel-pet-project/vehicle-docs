@@ -18,14 +18,22 @@ public class GetStsByVehicleDocumentsIdQueryHandler(
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         var sts = await connection.QueryFirstOrDefaultAsync<StsDapperModel>(Sql,
             new { Id = request.VehicleDocumentsId });
-        if (sts == null || sts.FrontPhotoStorageBucketAndKey == null || sts.BackPhotoStorageBucketAndKey == null)
-            return Result.Fail(new NotFound("Sts for vehicle doesn't exist"));
 
-        var response = new GetStsByVehicleDocumentsIdQueryResponse(
+        return IsEmptySts(sts) || sts == null
+            ? Result.Fail(new NotFound("Sts for vehicle doesn't exist"))
+            : Result.Ok(MapToResponse(sts));
+    }
+
+    private GetStsByVehicleDocumentsIdQueryResponse MapToResponse(StsDapperModel sts)
+    {
+        return new GetStsByVehicleDocumentsIdQueryResponse(
             $"{yandexS3StorageHost}/{sts.FrontPhotoStorageBucketAndKey}",
             $"{yandexS3StorageHost}/{sts.BackPhotoStorageBucketAndKey}");
+    }
 
-        return Result.Ok(response);
+    private static bool IsEmptySts(StsDapperModel? sts)
+    {
+        return sts?.FrontPhotoStorageBucketAndKey == null || sts.BackPhotoStorageBucketAndKey == null;
     }
 
     private record StsDapperModel(

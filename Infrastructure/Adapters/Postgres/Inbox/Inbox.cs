@@ -11,7 +11,7 @@ public class Inbox(DataContext context) : IInbox
 
     private readonly JsonSerializerSettings _jsonSettings = new() { TypeNameHandling = TypeNameHandling.All };
 
-    public async Task<bool> Save(IInputConsumerEvent inputConsumerEvent)
+    public async Task<bool> Save(IConvertibleToCommand inputConsumerEvent)
     {
         var inboxEvent = new InboxEvent
         {

@@ -1,6 +1,6 @@
 using Domain.SharedKernel;
-using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
+using Domain.SharedKernel.Exceptions.PublicException;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleDocumentsAggregate.DomainEvents;
 
@@ -34,7 +34,8 @@ public sealed class VehicleDocuments : Aggregate
         Pts = potentialPts;
 
         Status.MarkAsPtsAdded();
-        if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(SagaId, VehicleId));
+
+        AddAddingCompletedDomainEventIfNecessary();
     }
 
     public void AddSts(Sts potentialSts)
@@ -44,7 +45,8 @@ public sealed class VehicleDocuments : Aggregate
         Sts = potentialSts;
 
         Status.MarkAsStsAdded();
-        if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(SagaId, VehicleId));
+
+        AddAddingCompletedDomainEventIfNecessary();
     }
 
     public void MarkAsOsagoAdded()
@@ -52,6 +54,12 @@ public sealed class VehicleDocuments : Aggregate
         if (Status.IsOsagoAdded) throw new AlreadyHaveThisStateException("Osago already added for this vehicle");
 
         Status.MarkAsOsagoAdded();
+
+        AddAddingCompletedDomainEventIfNecessary();
+    }
+
+    private void AddAddingCompletedDomainEventIfNecessary()
+    {
         if (Status.AddingCompleted) AddDomainEvent(new DocumentAddingCompletedDomainEvent(SagaId, VehicleId));
     }
 

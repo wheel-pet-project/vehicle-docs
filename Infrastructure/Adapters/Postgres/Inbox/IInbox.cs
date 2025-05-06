@@ -4,5 +4,5 @@ namespace Infrastructure.Adapters.Postgres.Inbox;
 
 public interface IInbox
 {
-    Task<bool> Save(IInputConsumerEvent inputConsumerEvent);
+    Task<bool> Save(IConvertibleToCommand inputConsumerEvent);
 }

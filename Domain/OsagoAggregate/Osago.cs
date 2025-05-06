@@ -1,7 +1,7 @@
 using Domain.OsagoAggregate.DomainEvents;
 using Domain.SharedKernel;
-using Domain.SharedKernel.Exceptions.ArgumentException;
-using Domain.SharedKernel.Exceptions.DomainRulesViolationException;
+using Domain.SharedKernel.Exceptions.InternalExceptions;
+using Domain.SharedKernel.Exceptions.PublicException;
 
 namespace Domain.OsagoAggregate;
 
@@ -37,10 +37,16 @@ public sealed class Osago : Aggregate
 
     public void Expire(TimeProvider timeProvider)
     {
-        if (timeProvider.GetUtcNow().UtcDateTime < DateOfExpiry.ToDateTime(new TimeOnly()))
-            throw new DomainRulesViolationException($"{nameof(DateOfExpiry)} not come yet");
+        if (IsOsagoExpired() == false) throw new DomainRulesViolationException($"{nameof(DateOfExpiry)} not come yet");
 
         ExpiryStatus = ExpiryStatus.Expired;
+
+        return;
+
+        bool IsOsagoExpired()
+        {
+            return timeProvider.GetUtcNow().UtcDateTime > DateOfExpiry.ToDateTime(new TimeOnly());
+        }
     }
 
     public static Osago Create(
@@ -55,8 +61,12 @@ public sealed class Osago : Aggregate
         if (string.IsNullOrWhiteSpace(photoStorageBucketAndKey))
             throw new ValueIsRequiredException(
                 $"{nameof(photoStorageBucketAndKey)} cannot be null or whitespace");
-        if (dateOfIssue == default) throw new ValueOutOfRangeException($"{nameof(dateOfIssue)} cannot be default");
-        if (dateOfExpiry == default) throw new ValueOutOfRangeException($"{nameof(dateOfExpiry)} cannot be default");
+        if (dateOfIssue == default)
+            throw new ValueIsUnsupportedException(
+                $"{nameof(dateOfIssue)} cannot be default");
+        if (dateOfExpiry == default)
+            throw new ValueIsUnsupportedException(
+                $"{nameof(dateOfExpiry)} cannot be default");
         if (dateOfIssue > dateOfExpiry)
             throw new DomainRulesViolationException(
                 $"{nameof(dateOfIssue)} cannot be greater than {nameof(dateOfExpiry)}");

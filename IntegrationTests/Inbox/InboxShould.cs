@@ -11,7 +11,8 @@ public class InboxShould : IntegrationTestBase
 {
     private Infrastructure.Adapters.Postgres.Inbox.Inbox _inbox = null!;
 
-    private readonly IInputConsumerEvent _event = new VehicleAddedConsumerEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+    private readonly IConvertibleToCommand _event =
+        new VehicleAddedConsumerEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 
     private readonly JsonSerializerSettings _jsonSerializerSettings = new()
     {
@@ -31,7 +32,7 @@ public class InboxShould : IntegrationTestBase
         // Assert
         var existsEvents = Context.Inbox.Take(1).ToList();
         var actualEvent =
-            JsonConvert.DeserializeObject<IInputConsumerEvent>(existsEvents.First().Content, _jsonSerializerSettings);
+            JsonConvert.DeserializeObject<IConvertibleToCommand>(existsEvents.First().Content, _jsonSerializerSettings);
         Assert.NotNull(actualEvent);
         Assert.Equivalent(_event, actualEvent);
     }

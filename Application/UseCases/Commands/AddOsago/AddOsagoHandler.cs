@@ -13,19 +13,15 @@ public class AddOsagoHandler(
     IOsagoRepository osagoRepository,
     IUnitOfWork unitOfWork,
     IS3Storage s3Storage,
-    IImageFormatValidator formatValidator,
-    IImageSizeValidator sizeValidator) : IRequestHandler<AddOsagoCommand, Result>
+    IImageValidator imageValidator) : IRequestHandler<AddOsagoCommand, Result>
 {
     public async Task<Result> Handle(AddOsagoCommand command, CancellationToken cancellationToken)
     {
         var vehicleDocuments = await vehicleDocumentsRepository.GetById(command.VehicleDocumentsId);
         if (vehicleDocuments == null) return Result.Fail(new NotFound("Vehicle documents not found"));
 
-        if (formatValidator.IsSupportedFormat(command.PhotoBytes) is false)
-            return Result.Fail("Image format is not supported");
-
-        if (sizeValidator.IsSupportedSize(command.PhotoBytes.Count) is false)
-            return Result.Fail("Image size is too large");
+        var validatingResult = ValidatePhotos(command);
+        if (validatingResult.IsFailed) return validatingResult;
 
         var uploadingToS3Result = await s3Storage.SavePhoto(command.PhotoBytes, DocumentType.Osago);
         if (uploadingToS3Result.IsFailed) return Result.Fail(uploadingToS3Result.Errors);
@@ -37,5 +33,15 @@ public class AddOsagoHandler(
         await osagoRepository.Add(osago);
 
         return await unitOfWork.Commit();
+    }
+
+    private Result ValidatePhotos(AddOsagoCommand command)
+    {
+        if (imageValidator.IsSupportedFormat(command.PhotoBytes) is false)
+            return Result.Fail("Image format is not supported");
+        if (imageValidator.IsSupportedSize(command.PhotoBytes.Count) is false)
+            return Result.Fail("Image size is too large");
+
+        return Result.Ok();
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
+using System.Data;
 using Dapper;
-using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
 using Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;
 using JsonNet.ContractResolvers;
 using MediatR;
@@ -21,22 +22,26 @@ public class InboxBackgroundJob(
     private readonly JsonSerializerSettings _jsonSerializerSettings = new()
     {
         TypeNameHandling = TypeNameHandling.All,
-        ContractResolver = new PrivateSetterContractResolver()
+        ContractResolver = new PrivateSetterAndCtorContractResolver()
     };
 
     public async Task Execute(IJobExecutionContext jobExecutionContext)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var transaction = await connection.BeginTransactionAsync();
-        var inboxEvents = (await connection.QueryAsync<InboxEvent>(QuerySql, transaction)).AsList().AsReadOnly();
+        var inboxEvents = (await connection.QueryAsync<InboxEvent>(QuerySql, transaction))
+            .AsList()
+            .AsReadOnly();
 
         if (inboxEvents.Count > 0)
         {
             var updateQueue = new ConcurrentQueue<EventUpdate>();
 
             var consumerEvents = inboxEvents
-                .Select(ev => JsonConvert.DeserializeObject<IInputConsumerEvent>(ev.Content, _jsonSerializerSettings))
-                .OfType<IInputConsumerEvent>()
+                .Select(ev =>
+                    JsonConvert.DeserializeObject<IConvertibleToCommand>(ev.Content,
+                        _jsonSerializerSettings))
+                .OfType<IConvertibleToCommand>()
                 .AsList()
                 .AsReadOnly();
 
@@ -60,14 +65,15 @@ public class InboxBackgroundJob(
         return;
 
         async Task SendToMediator(
-            IInputConsumerEvent @event,
+            IConvertibleToCommand @event,
             ConcurrentQueue<EventUpdate> updateQueue,
             CancellationToken cancellationToken)
         {
             try
             {
                 var processingResult = await mediator.Send(@event.ToCommand(), cancellationToken);
-                if (processingResult.IsSuccess) updateQueue.Enqueue(new EventUpdate(@event.EventId, DateTime.UtcNow));
+                if (processingResult.IsSuccess)
+                    updateQueue.Enqueue(new EventUpdate(@event.EventId, DateTime.UtcNow));
             }
             catch (AlreadyHaveThisStateException)
             {
@@ -83,9 +89,10 @@ public class InboxBackgroundJob(
 
     private string FormatSql(List<EventUpdate> updates)
     {
-        var paramNames = string.Join(",", updates.Select((_, i) => $"(@EventId{i}, @ProcessedOnUtc{i})"));
+        var paramNames = string.Join(",",
+            updates.Select((_, i) => $"(@EventId{i}, @ProcessedOnUtc{i})"));
         var formattedSql = string.Format(UpdateSql, paramNames);
-        
+
         return formattedSql;
     }
 
@@ -95,12 +102,12 @@ public class InboxBackgroundJob(
         for (var i = 0; i < updates.Count; i++)
         {
             parameters.Add($"EventId{i}", updates[i].EventId);
-            parameters.Add($"ProcessedOnUtc{i}", updates[i].ProcessedOnUtc);
+            parameters.Add($"ProcessedOnUtc{i}", (object?)updates[i].ProcessedOnUtc ?? DBNull.Value, DbType.DateTime);
         }
-        
+
         return parameters;
     }
-    
+
     private class EventUpdate(Guid eventId, DateTime? processedOnUtc = null)
     {
         public Guid EventId { get; } = eventId;

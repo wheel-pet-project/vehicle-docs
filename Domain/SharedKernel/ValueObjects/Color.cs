@@ -1,5 +1,5 @@
 using CSharpFunctionalExtensions;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicException;
 
 namespace Domain.SharedKernel.ValueObjects;
 
@@ -46,7 +46,7 @@ public sealed class Color : ValueObject
     {
         var color = All().SingleOrDefault(s => string.Equals(s.Name, name, StringComparison.CurrentCultureIgnoreCase));
         if (color == null)
-            throw new ValueOutOfRangeException(
+            throw new ValueIsUnsupportedException(
                 $"{nameof(name)} unknown color or null, color must be one of: {string.Join(' ', All())}");
 
         return color;

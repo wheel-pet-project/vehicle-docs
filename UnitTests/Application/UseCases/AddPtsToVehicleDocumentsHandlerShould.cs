@@ -23,8 +23,7 @@ public class AddPtsToVehicleDocumentsHandlerShould
     private readonly Mock<IVehicleDocumentsRepository> _vehicleDocumentsRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
     private readonly Mock<IS3Storage> _s3StorageMock = new();
-    private readonly Mock<IImageFormatValidator> _imageFormatValidatorMock = new();
-    private readonly Mock<IImageSizeValidator> _imageSizeValidatorMock = new();
+    private readonly Mock<IImageValidator> _imageValidatorMock = new();
 
     private readonly AddPtsToVehicleDocumentsHandler _handler;
 
@@ -33,13 +32,14 @@ public class AddPtsToVehicleDocumentsHandlerShould
         _vehicleDocumentsRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(_vehicleDocuments);
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
         _s3StorageMock
-            .Setup(x => x.SavePhotos(It.IsAny<List<byte>>(), It.IsAny<List<byte>>(), It.IsAny<DocumentType>()))
+            .Setup(x => x.SaveFrontAndBackPhotos(It.IsAny<List<byte>>(), It.IsAny<List<byte>>(),
+                It.IsAny<DocumentType>()))
             .ReturnsAsync(Result.Ok(("frontKey", "backKey")));
-        _imageFormatValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(true);
-        _imageSizeValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(true);
+        _imageValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(true);
+        _imageValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(true);
 
         _handler = new AddPtsToVehicleDocumentsHandler(_vehicleDocumentsRepositoryMock.Object, _unitOfWorkMock.Object,
-            _s3StorageMock.Object, _imageFormatValidatorMock.Object, _imageSizeValidatorMock.Object);
+            _s3StorageMock.Object, _imageValidatorMock.Object);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class AddPtsToVehicleDocumentsHandlerShould
     public async Task ReturnFailIfImageFormatUnsupported()
     {
         // Arrange
-        _imageFormatValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(false);
+        _imageValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(false);
 
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);
@@ -85,7 +85,7 @@ public class AddPtsToVehicleDocumentsHandlerShould
     public async Task ReturnFailIfImageSizeUnsupported()
     {
         // Arrange
-        _imageSizeValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(false);
+        _imageValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(false);
 
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);
@@ -99,7 +99,8 @@ public class AddPtsToVehicleDocumentsHandlerShould
     {
         // Arrange
         _s3StorageMock
-            .Setup(x => x.SavePhotos(It.IsAny<List<byte>>(), It.IsAny<List<byte>>(), It.IsAny<DocumentType>()))
+            .Setup(x => x.SaveFrontAndBackPhotos(It.IsAny<List<byte>>(), It.IsAny<List<byte>>(),
+                It.IsAny<DocumentType>()))
             .ReturnsAsync(Result.Fail("error"));
 
         // Act

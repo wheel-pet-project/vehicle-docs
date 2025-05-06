@@ -19,22 +19,27 @@ public class GetPtsByVehicleDocumentsIdQueryHandler(
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         var pts = await connection.QueryFirstOrDefaultAsync<PtsDapperModel>(Sql,
             new { Id = request.VehicleDocumentsId });
-        if (pts == null ||
-            pts.FrontPhotoStorageBucketAndKey == null ||
-            pts.BackPhotoStorageBucketAndKey == null ||
-            pts.YearOfManufacture == null ||
-            pts.Color == null ||
-            pts.Vin == null)
-            return Result.Fail(new NotFound("Pts for vehicle doesn't exist"));
 
-        var response = new GetPtsByVehicleDocumentsIdQueryResponse(
-            $"{yandexS3StorageHost}/{pts.FrontPhotoStorageBucketAndKey}",
-            $"{yandexS3StorageHost}/{pts.BackPhotoStorageBucketAndKey}",
-            pts.YearOfManufacture.Value,
-            Color.FromName(pts.Color),
-            pts.Vin);
+        return IsEmptyPts(pts) || pts == null
+            ? Result.Fail(new NotFound("Pts for vehicle doesn't exist"))
+            : Result.Ok(MapToResponse(pts));
+    }
 
-        return Result.Ok(response);
+    private bool IsEmptyPts(PtsDapperModel? pts)
+    {
+        return pts?.FrontPhotoStorageBucketAndKey == null || pts.BackPhotoStorageBucketAndKey == null;
+    }
+
+    private GetPtsByVehicleDocumentsIdQueryResponse MapToResponse(PtsDapperModel pts)
+    {
+        return pts is { YearOfManufacture: not null, Color: not null, Vin: not null }
+            ? new GetPtsByVehicleDocumentsIdQueryResponse(
+                $"{yandexS3StorageHost}/{pts.FrontPhotoStorageBucketAndKey}",
+                $"{yandexS3StorageHost}/{pts.BackPhotoStorageBucketAndKey}",
+                pts.YearOfManufacture.Value,
+                Color.FromName(pts.Color),
+                pts.Vin)
+            : throw new ArgumentException("Some pts values is null");
     }
 
     private record PtsDapperModel(

@@ -1,4 +1,4 @@
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicException;
 using Domain.SharedKernel.ValueObjects;
 using JetBrains.Annotations;
 using Xunit;
@@ -65,7 +65,7 @@ public class VinShould
         }
 
         // Assert
-        Assert.Throws<ValueOutOfRangeException>(Act);
+        Assert.Throws<ValueIsUnsupportedException>(Act);
     }
 
     [Fact]

@@ -21,8 +21,7 @@ public class AddOsagoHandlerShould
     private readonly Mock<IOsagoRepository> _osagoRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
     private readonly Mock<IS3Storage> _s3StorageMock = new();
-    private readonly Mock<IImageFormatValidator> _imageFormatValidatorMock = new();
-    private readonly Mock<IImageSizeValidator> _imageSizeValidatorMock = new();
+    private readonly Mock<IImageValidator> _imageValidatorMock = new();
 
     private readonly AddOsagoHandler _handler;
 
@@ -32,12 +31,11 @@ public class AddOsagoHandlerShould
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
         _s3StorageMock.Setup(x => x.SavePhoto(It.IsAny<List<byte>>(), It.IsAny<DocumentType>()))
             .ReturnsAsync(Result.Ok("photoKey"));
-        _imageFormatValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(true);
-        _imageSizeValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(true);
+        _imageValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(true);
+        _imageValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(true);
 
         _handler = new AddOsagoHandler(_vehicleDocumentsRepositoryMock.Object, _osagoRepositoryMock.Object,
-            _unitOfWorkMock.Object, _s3StorageMock.Object, _imageFormatValidatorMock.Object,
-            _imageSizeValidatorMock.Object);
+            _unitOfWorkMock.Object, _s3StorageMock.Object, _imageValidatorMock.Object);
     }
 
     [Fact]
@@ -70,7 +68,7 @@ public class AddOsagoHandlerShould
     public async Task ReturnFailIfImageFormatUnsupported()
     {
         // Arrange
-        _imageFormatValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(false);
+        _imageValidatorMock.Setup(x => x.IsSupportedFormat(It.IsAny<List<byte>>())).Returns(false);
 
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);
@@ -83,7 +81,7 @@ public class AddOsagoHandlerShould
     public async Task ReturnFailIfImageSizeUnsupported()
     {
         // Arrange
-        _imageSizeValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(false);
+        _imageValidatorMock.Setup(x => x.IsSupportedSize(It.IsAny<int>())).Returns(false);
 
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);

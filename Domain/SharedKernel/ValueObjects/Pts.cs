@@ -1,5 +1,5 @@
 using CSharpFunctionalExtensions;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicException;
 
 namespace Domain.SharedKernel.ValueObjects;
 
@@ -44,9 +44,11 @@ public class Pts : ValueObject
         if (string.IsNullOrWhiteSpace(backPhotoStorageBucketAndKey))
             throw new ValueIsRequiredException($"{nameof(backPhotoStorageBucketAndKey)} cannot be null or whitespace");
         if (yearOfManufacture == default)
-            throw new ValueOutOfRangeException($"{nameof(yearOfManufacture)} cannot be default value");
-        if (color == null) throw new ValueIsRequiredException($"{nameof(color)} cannot be null");
-        if (vin == null) throw new ValueIsRequiredException($"{nameof(vin)} cannot be null");
+            throw new ValueIsUnsupportedException($"{nameof(yearOfManufacture)} cannot be default value");
+        if (color == null)
+            throw new ValueIsRequiredException($"{nameof(color)} cannot be null");
+        if (vin == null)
+            throw new ValueIsRequiredException($"{nameof(vin)} cannot be null");
 
         return new Pts(frontPhotoStorageBucketAndKey, backPhotoStorageBucketAndKey, yearOfManufacture, color, vin);
     }

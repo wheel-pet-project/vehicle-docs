@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicException;
 
 namespace Domain.SharedKernel.ValueObjects;
 
@@ -25,7 +25,7 @@ public class Vin : ValueObject
         var vinNumber = input.Trim();
 
         if (vinNumber.Length != 17)
-            throw new ValueOutOfRangeException($"{nameof(vinNumber)} must be 17 characters long");
+            throw new ValueIsUnsupportedException($"{nameof(vinNumber)} must be 17 characters long");
 
         vinNumber = vinNumber.ToUpper();
 

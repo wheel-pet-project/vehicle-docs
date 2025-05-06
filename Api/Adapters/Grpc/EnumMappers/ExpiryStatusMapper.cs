@@ -1,4 +1,4 @@
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicException;
 using DomainStatus = Domain.OsagoAggregate.ExpiryStatus;
 
 namespace Api.Adapters.Grpc.EnumMappers;
@@ -11,7 +11,7 @@ public class ExpiryStatusMapper
         {
             _ when domainStatus == DomainStatus.NotExpired => ExpiryStatus.NotExpiredUnspecified,
             _ when domainStatus == DomainStatus.Expired => ExpiryStatus.Expired,
-            _ => throw new ValueOutOfRangeException($"{domainStatus} is unknown status")
+            _ => throw new ValueIsUnsupportedException($"{domainStatus} is unknown status")
         };
     }
 }

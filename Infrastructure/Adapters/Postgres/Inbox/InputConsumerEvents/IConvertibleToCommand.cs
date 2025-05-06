@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;
 
-public interface IInputConsumerEvent
+public interface IConvertibleToCommand
 {
     public Guid EventId { get; }
 

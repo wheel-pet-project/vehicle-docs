@@ -1,5 +1,5 @@
-using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
+using Domain.SharedKernel.Exceptions.PublicException;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleDocumentsAggregate;
 using JetBrains.Annotations;
@@ -34,7 +34,7 @@ public class VehicleDocumentsShould
         Assert.Null(actual.Pts);
         Assert.Null(actual.Sts);
     }
-    
+
     [Fact]
     public void ThrowValueIsRequiredExceptionIfSagaIdIsEmpty()
     {

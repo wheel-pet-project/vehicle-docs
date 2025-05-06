@@ -19,15 +19,19 @@ public class GetOsagoByVehicleDocumentsIdQueryHandler(
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         var osago = await connection.QueryFirstOrDefaultAsync<OsagoDapperModel>(Sql,
             new { request.VehicleDocumentsId });
-        if (osago == null) return Result.Fail(new NotFound("Osago for vehicle doesn't exist"));
 
-        var response = new GetOsagoByVehicleDocumentsIdQueryResponse(
+        return osago == null
+            ? Result.Fail(new NotFound("Osago for vehicle doesn't exist"))
+            : Result.Ok(MapToResponse(osago));
+    }
+
+    private GetOsagoByVehicleDocumentsIdQueryResponse MapToResponse(OsagoDapperModel osago)
+    {
+        return new GetOsagoByVehicleDocumentsIdQueryResponse(
             $"{yandexS3StorageHost}/{osago.PhotoStorageBucketAndKey}",
             ExpiryStatus.FromId(osago.ExpiryStatusId),
             osago.DateOfIssue,
             osago.DateOfExpiry);
-
-        return Result.Ok(response);
     }
 
     private record OsagoDapperModel(

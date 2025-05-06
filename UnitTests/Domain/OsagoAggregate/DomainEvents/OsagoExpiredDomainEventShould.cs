@@ -1,5 +1,4 @@
 using Domain.OsagoAggregate.DomainEvents;
-using Domain.SharedKernel.Exceptions.ArgumentException;
 using JetBrains.Annotations;
 using Xunit;
 
@@ -23,7 +22,7 @@ public class OsagoExpiredDomainEventShould
     }
 
     [Fact]
-    public void ThrowValueIsRequiredExceptionIfVehicleIdIsEmpty()
+    public void ThrowArgumentExceptionIfVehicleIdIsEmpty()
     {
         // Arrange
         var vehicleDocumentsId = Guid.Empty;
@@ -35,6 +34,6 @@ public class OsagoExpiredDomainEventShould
         }
 
         // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
+        Assert.Throws<ArgumentException>(Act);
     }
 }

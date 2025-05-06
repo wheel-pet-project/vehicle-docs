@@ -1,4 +1,3 @@
-using Domain.SharedKernel.Exceptions.ArgumentException;
 using Domain.VehicleDocumentsAggregate.DomainEvents;
 using JetBrains.Annotations;
 using Xunit;
@@ -10,7 +9,7 @@ public class DocumentsAddingCompletedDomainEventShould
 {
     private readonly Guid _sagaId = Guid.NewGuid();
     private readonly Guid _vehicleId = Guid.NewGuid();
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -25,7 +24,7 @@ public class DocumentsAddingCompletedDomainEventShould
     }
 
     [Fact]
-    public void ThrowValueIsRequiredExceptionIfVehicleIdIsEmpty()
+    public void ThrowArgumentExceptionIfVehicleIdIsEmpty()
     {
         // Arrange
 
@@ -36,11 +35,11 @@ public class DocumentsAddingCompletedDomainEventShould
         }
 
         // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
+        Assert.Throws<ArgumentException>(Act);
     }
-    
+
     [Fact]
-    public void ThrowValueIsRequiredExceptionIfSagaIdIsEmpty()
+    public void ThrowArgumentExceptionIfSagaIdIsEmpty()
     {
         // Arrange
 
@@ -51,6 +50,6 @@ public class DocumentsAddingCompletedDomainEventShould
         }
 
         // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
+        Assert.Throws<ArgumentException>(Act);
     }
 }

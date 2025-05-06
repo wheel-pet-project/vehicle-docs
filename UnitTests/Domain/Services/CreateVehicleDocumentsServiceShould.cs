@@ -1,5 +1,5 @@
 using Domain.Services;
-using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
 using Domain.VehicleDocumentsAggregate;
 using Xunit;
 

@@ -17,12 +17,16 @@ public class GetVehicleDocumentsByVehicleIdQueryHandler(NpgsqlDataSource dataSou
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         var vehicleDocuments = await connection.QueryFirstOrDefaultAsync<VehicleDocumentsDapperModel>(Sql,
             new { request.VehicleId });
-        if (vehicleDocuments == null) return Result.Fail(new NotFound("Documents for vehicle doesn't exist"));
 
-        var response = new GetVehicleDocumentsByVehicleIdQueryResponse(vehicleDocuments.Id, vehicleDocuments.VehicleId,
+        return vehicleDocuments == null
+            ? Result.Fail(new NotFound("Documents for vehicle doesn't exist"))
+            : Result.Ok(MapToResponse(vehicleDocuments));
+    }
+
+    private GetVehicleDocumentsByVehicleIdQueryResponse MapToResponse(VehicleDocumentsDapperModel vehicleDocuments)
+    {
+        return new GetVehicleDocumentsByVehicleIdQueryResponse(vehicleDocuments.Id, vehicleDocuments.VehicleId,
             Status.FromValues(vehicleDocuments.IsPtsAdded, vehicleDocuments.IsStsAdded, vehicleDocuments.IsOsagoAdded));
-
-        return Result.Ok(response);
     }
 
     private record VehicleDocumentsDapperModel(

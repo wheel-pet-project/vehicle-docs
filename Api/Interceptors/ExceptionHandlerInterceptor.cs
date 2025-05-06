@@ -1,5 +1,4 @@
-using Domain.SharedKernel.Exceptions.DataConsistencyViolationException;
-using Domain.SharedKernel.Exceptions.DomainRulesViolationException;
+using Domain.SharedKernel.Exceptions.InternalExceptions;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Npgsql;

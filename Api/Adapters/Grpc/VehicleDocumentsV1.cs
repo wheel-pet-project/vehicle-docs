@@ -7,7 +7,7 @@ using Application.UseCases.Queries.GetPtsByVehicleDocumentsId;
 using Application.UseCases.Queries.GetStsByVehicleDocumentsId;
 using Application.UseCases.Queries.GetVehicleDocumentsByVehicleId;
 using Domain.SharedKernel.Errors;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicException;
 using FluentResults;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -157,6 +157,6 @@ public class VehicleDocumentsV1(
     {
         return Guid.TryParse(potentialId, out var id)
             ? id
-            : throw new ValueOutOfRangeException($"{nameof(potentialId)} is invalid uuid");
+            : throw new ValueIsUnsupportedException($"{nameof(potentialId)} is invalid uuid");
     }
 }

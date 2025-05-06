@@ -1,7 +1,7 @@
 using Application.DomainEventHandlers;
 using Application.Ports.Postgres;
 using Domain.OsagoAggregate.DomainEvents;
-using Domain.SharedKernel.Exceptions.DataConsistencyViolationException;
+using Domain.SharedKernel.Exceptions.InternalExceptions;
 using Domain.VehicleDocumentsAggregate;
 using FluentResults;
 using JetBrains.Annotations;

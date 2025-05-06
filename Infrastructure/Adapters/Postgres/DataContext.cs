@@ -37,6 +37,7 @@ internal class VehicleDocumentsEntityTypeConfiguration : IEntityTypeConfiguratio
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id).ValueGeneratedNever().HasColumnName("id").IsRequired();
+        builder.Property(x => x.SagaId).ValueGeneratedNever().HasColumnName("saga_id").IsRequired();
         builder.Property(x => x.VehicleId).ValueGeneratedNever().HasColumnName("vehicle_id").IsRequired();
 
         builder.OwnsOne(x => x.Status, cfg =>

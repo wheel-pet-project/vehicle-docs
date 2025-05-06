@@ -1,6 +1,6 @@
 using Domain.OsagoAggregate;
-using Domain.SharedKernel.Exceptions.ArgumentException;
-using Domain.SharedKernel.Exceptions.DomainRulesViolationException;
+using Domain.SharedKernel.Exceptions.InternalExceptions;
+using Domain.SharedKernel.Exceptions.PublicException;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Time.Testing;
 using Xunit;
@@ -77,7 +77,7 @@ public class OsagoShould
         }
 
 // Assert
-        Assert.Throws<ValueOutOfRangeException>(Act);
+        Assert.Throws<ValueIsUnsupportedException>(Act);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class OsagoShould
         }
 
         // Assert
-        Assert.Throws<ValueOutOfRangeException>(Act);
+        Assert.Throws<ValueIsUnsupportedException>(Act);
     }
 
     [Fact]

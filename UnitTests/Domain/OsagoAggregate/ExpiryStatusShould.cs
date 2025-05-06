@@ -1,5 +1,5 @@
 using Domain.OsagoAggregate;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicException;
 using JetBrains.Annotations;
 using Xunit;
 
@@ -34,7 +34,7 @@ public class ExpiryExpiryShould
         }
 
         // Assert
-        Assert.Throws<ValueOutOfRangeException>(Act);
+        Assert.Throws<ValueIsUnsupportedException>(Act);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class ExpiryExpiryShould
         }
 
         // Assert
-        Assert.Throws<ValueOutOfRangeException>(Act);
+        Assert.Throws<ValueIsUnsupportedException>(Act);
     }
 
     [Fact]
