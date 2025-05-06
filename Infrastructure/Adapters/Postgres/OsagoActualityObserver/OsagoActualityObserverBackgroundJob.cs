@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using Application.Ports.Postgres;
 using Domain.OsagoAggregate;
-using Domain.SharedKernel.Errors;
 using Microsoft.Extensions.Logging;
 using Quartz;
 
@@ -23,15 +22,14 @@ public class OsagoActualityObserverBackgroundJob(
                 {
                     osago.Expire(timeProvider);
                     osagoRepository.Update(osago);
-
-                    var commitResult = await unitOfWork.Commit();
-                    if (commitResult.IsFailed) throw ((CommitFail)commitResult.Errors[0]).Exception;
                 }
                 catch (Exception e)
                 {
                     logger.LogCritical(
                         "Fail to process update osago expiry status in domain event handler, exception: {e}", e);
                 }
+
+        await unitOfWork.Commit();
     }
 
     private Expression<Func<Osago, bool>> IsExpired()
