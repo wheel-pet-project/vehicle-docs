@@ -15,8 +15,8 @@ public class GetVehicleDocumentsByVehicleIdQueryHandler(NpgsqlDataSource dataSou
         CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        var vehicleDocuments = await connection.QueryFirstOrDefaultAsync<VehicleDocumentsDapperModel>(Sql,
-            new { request.VehicleId });
+        var command = new CommandDefinition(Sql, new { request.VehicleId }, cancellationToken: cancellationToken);
+        var vehicleDocuments = await connection.QueryFirstOrDefaultAsync<VehicleDocumentsDapperModel>(command);
 
         return vehicleDocuments == null
             ? Result.Fail(new NotFound("Documents for vehicle doesn't exist"))

@@ -16,8 +16,9 @@ public class GetStsByVehicleDocumentsIdQueryHandler(
         CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        var sts = await connection.QueryFirstOrDefaultAsync<StsDapperModel>(Sql,
-            new { Id = request.VehicleDocumentsId });
+        var command = new CommandDefinition(Sql, new { Id = request.VehicleDocumentsId },
+            cancellationToken: cancellationToken);
+        var sts = await connection.QueryFirstOrDefaultAsync<StsDapperModel>(command);
 
         return IsEmptySts(sts) || sts == null
             ? Result.Fail(new NotFound("Sts for vehicle doesn't exist"))

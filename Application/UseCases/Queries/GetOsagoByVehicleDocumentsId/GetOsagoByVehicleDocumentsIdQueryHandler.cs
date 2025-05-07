@@ -17,8 +17,9 @@ public class GetOsagoByVehicleDocumentsIdQueryHandler(
         CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        var osago = await connection.QueryFirstOrDefaultAsync<OsagoDapperModel>(Sql,
-            new { request.VehicleDocumentsId });
+        var command =
+            new CommandDefinition(Sql, new { request.VehicleDocumentsId }, cancellationToken: cancellationToken);
+        var osago = await connection.QueryFirstOrDefaultAsync<OsagoDapperModel>(command);
 
         return osago == null
             ? Result.Fail(new NotFound("Osago for vehicle doesn't exist"))

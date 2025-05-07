@@ -17,8 +17,9 @@ public class GetPtsByVehicleDocumentsIdQueryHandler(
         CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        var pts = await connection.QueryFirstOrDefaultAsync<PtsDapperModel>(Sql,
-            new { Id = request.VehicleDocumentsId });
+        var command =
+            new CommandDefinition(Sql, new { request.VehicleDocumentsId }, cancellationToken: cancellationToken);
+        var pts = await connection.QueryFirstOrDefaultAsync<PtsDapperModel>(command);
 
         return IsEmptyPts(pts) || pts == null
             ? Result.Fail(new NotFound("Pts for vehicle doesn't exist"))
