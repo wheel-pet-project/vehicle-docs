@@ -3,7 +3,7 @@
   # Database  
   c-vehicledocuments-db:
     container_name: c-vehicledocuments-db
-    image: postgres:latest
+    image: postgres:17
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password

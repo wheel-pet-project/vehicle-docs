@@ -18,7 +18,7 @@ public class GetPtsByVehicleDocumentsIdQueryHandler(
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         var command =
-            new CommandDefinition(Sql, new { request.VehicleDocumentsId }, cancellationToken: cancellationToken);
+            new CommandDefinition(Sql, new { Id = request.VehicleDocumentsId }, cancellationToken: cancellationToken);
         var pts = await connection.QueryFirstOrDefaultAsync<PtsDapperModel>(command);
 
         return IsEmptyPts(pts) || pts == null
